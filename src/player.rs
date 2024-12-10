@@ -4,6 +4,7 @@ use crate::{
     WINDOW_SIZE,
     GRID_SIZE,
     PATH_IMAGE_PLAYER,
+    Player,
 };
 
 const IMAGE_SIZE: UVec2 = UVec2::splat(32);
@@ -13,12 +14,6 @@ const SCALE: Vec3 = Vec3::splat(2.0);
 const TRANSLATION: Vec3 = Vec3::new(0.0, GRID_SIZE * -12.0, 99.0);
 const SPEED: f32 = 200.0;
 const SIZE: f32 = 64.0;
-
-#[derive(Component)]
-struct Player {
-    first: usize,
-    last: usize,
-}
 
 fn setup(
     mut commands: Commands,

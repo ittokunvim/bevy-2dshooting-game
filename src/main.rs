@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+mod bullet;
 mod player;
 
 const GAMETITLE: &str = "2Dシューティングゲーム";
@@ -7,6 +8,13 @@ const WINDOW_SIZE: Vec2 = Vec2::new(640.0, 480.0);
 const BACKGROUND_COLOR: Color = Color::srgb(0.9, 0.9, 0.9);
 const GRID_SIZE: f32 = 16.0;
 const PATH_IMAGE_PLAYER: &str = "bevy-2dshooting-game/player-ship.png";
+const PATH_IMAGE_BULLET: &str = "bevy-2dshooting-game/player-bullet.png";
+
+#[derive(Component)]
+struct Player {
+    first: usize,
+    last: usize,
+}
 
 fn main() {
     App::new()
@@ -24,6 +32,7 @@ fn main() {
         .insert_resource(Time::<Fixed>::from_seconds(1.0 / 60.0))
         .add_systems(Startup, setup)
         .add_plugins(player::PlayerPlugin)
+        .add_plugins(bullet::BulletPlugin)
         .run();
 }
 
