@@ -9,6 +9,7 @@ use crate::{
 const IMAGE_SIZE: UVec2 = UVec2::splat(32);
 const COLUMN: u32 = 4;
 const ROW: u32 = 1;
+const FPS: f32 = 0.1;
 
 #[derive(Resource, Deref)]
 struct BulletImage(Handle<Image>);
@@ -18,6 +19,9 @@ struct Bullet {
     first: usize,
     last: usize,
 }
+
+#[derive(Component, Deref, DerefMut)]
+struct AnimationTimer(Timer);
 
 fn setup(
     mut commands: Commands,
@@ -57,7 +61,24 @@ fn shoot(
         ),
         Transform::from_translation(translation),
         animation_indices,
+        AnimationTimer(Timer::from_seconds(FPS, TimerMode::Repeating)),
     ));
+}
+
+fn animation(
+    mut query: Query<(&Bullet, &mut AnimationTimer, &mut Sprite), With<Bullet>>,
+    time: Res<Time>,
+) {
+    for (prop, mut timer, mut sprite) in &mut query {
+        timer.tick(time.delta());
+
+        if timer.just_finished() {
+            if let Some(atlas) = &mut sprite.texture_atlas {
+                atlas.index = if atlas.index == prop.last 
+                    { prop.first } else { atlas.index + 1 }
+            }
+        }
+    }
 }
 
 pub struct BulletPlugin;
@@ -67,6 +88,7 @@ impl Plugin for BulletPlugin {
         app
             .add_systems(Startup, setup)
             .add_systems(Update, shoot)
+            .add_systems(Update, animation)
         ;
     }
 }
