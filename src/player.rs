@@ -81,6 +81,20 @@ fn movement(
     transform.translation.y = new_player_position_y.clamp(up_bound, down_bound);
 }
 
+fn damege(
+    mut query: Query<(&Player, &mut Sprite), With<Player>>,
+    events: Res<ButtonInput<MouseButton>>,
+) {
+    if !events.just_pressed(MouseButton::Left) { return }
+
+    let Ok((prop, mut sprite)) = query.get_single_mut() else { return };
+    println!("player: damege");
+    if let Some(atlas) = &mut sprite.texture_atlas {
+        atlas.index = if atlas.index == prop.last
+            { prop.first } else { atlas.index + 1 }
+    }
+}
+
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
@@ -88,6 +102,7 @@ impl Plugin for PlayerPlugin {
         app
             .add_systems(Startup, setup)
             .add_systems(Update, movement)
+            .add_systems(Update, damege)
         ;
     }
 }
