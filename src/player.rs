@@ -48,12 +48,46 @@ fn setup(
     ));
 }
 
+fn movement(
+    mut query: Query<&mut Transform, With<Player>>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    time_step: Res<Time<Fixed>>,
+) {
+    let mut direction = Vec2::ZERO;
+    // set direction
+    for key in keyboard_input.get_pressed() {
+        match key {
+            KeyCode::ArrowLeft  | KeyCode::KeyA => direction.x -= 1.0,
+            KeyCode::ArrowRight | KeyCode::KeyD => direction.x += 1.0,
+            KeyCode::ArrowUp    | KeyCode::KeyW => direction.y += 1.0,
+            KeyCode::ArrowDown  | KeyCode::KeyS => direction.y -= 1.0,
+            _ => {},
+        }
+    }
+
+    let mut transform = query.single_mut();
+    // set player x position
+    let new_player_position_x = transform.translation.x
+        + direction.x * SPEED * time_step.delta().as_secs_f32();
+    let left_bound = -WINDOW_SIZE.x / 2.0 + SIZE / 2.0;
+    let right_bound = WINDOW_SIZE.x / 2.0 - SIZE / 2.0;
+    // set player y position
+    let new_player_position_y = transform.translation.y
+        + direction.y * SPEED * time_step.delta().as_secs_f32();
+    let up_bound = -WINDOW_SIZE.y / 2.0 + SIZE / 2.0;
+    let down_bound = WINDOW_SIZE.y / 2.0 - SIZE / 2.0;
+    // movement player
+    transform.translation.x = new_player_position_x.clamp(left_bound, right_bound);
+    transform.translation.y = new_player_position_y.clamp(up_bound, down_bound);
+}
+
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_systems(Startup, setup)
+            .add_systems(Update, movement)
         ;
     }
 }
