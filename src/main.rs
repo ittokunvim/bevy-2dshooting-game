@@ -9,6 +9,7 @@ const BACKGROUND_COLOR: Color = Color::srgb(0.9, 0.9, 0.9);
 const GRID_SIZE: f32 = 16.0;
 const PATH_IMAGE_PLAYER: &str = "bevy-2dshooting-game/player-ship.png";
 const PATH_IMAGE_BULLET: &str = "bevy-2dshooting-game/player-bullet.png";
+const PATH_SOUND_SHOOT: &str = "bevy-2dshooting-game/shoot.ogg";
 
 #[derive(Component)]
 struct Player {

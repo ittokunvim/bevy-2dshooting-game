@@ -4,6 +4,7 @@ use crate::{
     WINDOW_SIZE,
     GRID_SIZE,
     PATH_IMAGE_BULLET,
+    PATH_SOUND_SHOOT,
     Player,
 };
 
@@ -12,9 +13,16 @@ const COLUMN: u32 = 4;
 const ROW: u32 = 1;
 const SPEED: f32 = 512.0;
 const FPS: f32 = 0.1;
+const KEYCODE: KeyCode = KeyCode::Space;
 
 #[derive(Resource, Deref)]
 struct BulletImage(Handle<Image>);
+
+#[derive(Resource, Deref)]
+struct ShootSound(Handle<AudioSource>);
+
+#[derive(Event, Default)]
+struct ShootEvent;
 
 #[derive(Component)]
 struct Bullet {
@@ -30,8 +38,12 @@ fn setup(
     asset_server: Res<AssetServer>,
 ) {
     println!("bullet: setup");
+    // bullet image
     let handle: Handle<Image> = asset_server.load(PATH_IMAGE_BULLET);
     commands.insert_resource(BulletImage(handle));
+    // shoot sound
+    let handle = asset_server.load(PATH_SOUND_SHOOT);
+    commands.insert_resource(ShootSound(handle));
 }
 
 fn animation(
@@ -50,14 +62,34 @@ fn animation(
     }
 }
 
+fn movement(
+    mut query: Query<&mut Transform, With<Bullet>>,
+    time_step: Res<Time<Fixed>>,
+) {
+    for mut transform in &mut query {
+        // move bullet
+        transform.translation.y += SPEED * time_step.delta().as_secs_f32();
+    }
+}
+
+fn event(
+    mut events: EventWriter<ShootEvent>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+) {
+    if !keyboard_input.just_pressed(KEYCODE) { return }
+    // println!("bullet: {:?} pressed", KEYCODE);
+    events.send_default();
+}
+
 fn shoot(
     mut commands: Commands,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
-    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut events: EventReader<ShootEvent>,
     bullet_image: Res<BulletImage>,
     player_query: Query<&Transform, With<Player>>,
 ) {
-    if !keyboard_input.just_pressed(KeyCode::Space) { return }
+    if events.is_empty() { return }
+    events.clear();
 
     let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
@@ -83,14 +115,18 @@ fn shoot(
     ));
 }
 
-fn movement(
-    mut query: Query<&mut Transform, With<Bullet>>,
-    time_step: Res<Time<Fixed>>,
+fn play(
+    mut events: EventReader<ShootEvent>,
+    mut commands: Commands,
+    sound: Res<ShootSound>,
 ) {
-    for mut transform in &mut query {
-        // move bullet
-        transform.translation.y += SPEED * time_step.delta().as_secs_f32();
-    }
+    if events.is_empty() { return }
+    events.clear();
+    // println!("bullet: play");
+    commands.spawn((
+        AudioPlayer(sound.clone()),
+        PlaybackSettings::DESPAWN,
+    ));
 }
 
 fn despawn(
@@ -110,11 +146,14 @@ pub struct BulletPlugin;
 impl Plugin for BulletPlugin {
     fn build(&self, app: &mut App) {
         app
+            .add_event::<ShootEvent>()
             .add_systems(Startup, setup)
             .add_systems(Update, (
                 animation,
-                shoot,
                 movement,
+                event,
+                shoot,
+                play,
                 despawn,
             ))
         ;
