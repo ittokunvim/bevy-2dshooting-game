@@ -12,7 +12,7 @@ const COLUMN: u32 = 4;
 const ROW: u32 = 1;
 const SCALE: Vec3 = Vec3::splat(2.0);
 const TRANSLATION: Vec3 = Vec3::new(0.0, GRID_SIZE * -12.0, 99.0);
-const SPEED: f32 = 200.0;
+const SPEED: f32 = 256.0;
 const SIZE: f32 = 64.0;
 
 fn setup(
@@ -20,7 +20,7 @@ fn setup(
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
     asset_server: Res<AssetServer>,
 ) {
-    println!("player: setup");
+    println!("player.ship: setup");
     let texture = asset_server.load(PATH_IMAGE_PLAYER_SHIP);
     let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
@@ -83,7 +83,7 @@ fn damege(
     if !events.just_pressed(MouseButton::Left) { return }
 
     let Ok((prop, mut sprite)) = query.get_single_mut() else { return };
-    println!("player: damege");
+    // println!("player.ship: damege");
     if let Some(atlas) = &mut sprite.texture_atlas {
         atlas.index = if atlas.index == prop.last
             { prop.first } else { atlas.index + 1 }

@@ -6,7 +6,10 @@ use crate::{
     PATH_IMAGE_PLAYER_BULLET,
     PATH_SOUND_SHOOT,
 };
-use crate::player::Player;
+use crate::player::{
+    Player,
+    Bullet,
+};
 
 const IMAGE_SIZE: UVec2 = UVec2::splat(32);
 const COLUMN: u32 = 4;
@@ -24,12 +27,6 @@ struct ShootSound(Handle<AudioSource>);
 #[derive(Event, Default)]
 struct ShootEvent;
 
-#[derive(Component)]
-struct Bullet {
-    first: usize,
-    last: usize,
-}
-
 #[derive(Component, Deref, DerefMut)]
 struct AnimationTimer(Timer);
 
@@ -37,7 +34,7 @@ fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
-    println!("bullet: setup");
+    println!("player.bullet: setup");
     // bullet image
     let handle: Handle<Image> = asset_server.load(PATH_IMAGE_PLAYER_BULLET);
     commands.insert_resource(BulletImage(handle));
@@ -77,7 +74,7 @@ fn event(
     keyboard_input: Res<ButtonInput<KeyCode>>,
 ) {
     if !keyboard_input.just_pressed(KEYCODE) { return }
-    // println!("bullet: {:?} pressed", KEYCODE);
+    // println!("player.bullet: {:?} pressed", KEYCODE);
     events.send_default();
 }
 
@@ -100,7 +97,7 @@ fn shoot(
         player_transform.translation.y + GRID_SIZE * 2.0, 
         99.0,
     );
-    // println!("bullet: shoot");
+    // println!("player.bullet: shoot");
     commands.spawn((
         Sprite::from_atlas_image(
             bullet_image.clone(),
@@ -122,7 +119,7 @@ fn play(
 ) {
     if events.is_empty() { return }
     events.clear();
-    // println!("bullet: play");
+    // println!("player.bullet: play");
     commands.spawn((
         AudioPlayer(sound.clone()),
         PlaybackSettings::DESPAWN,
@@ -135,7 +132,7 @@ fn despawn(
 ) {
     for (entity, transform) in  &query {
         if transform.translation.y >= WINDOW_SIZE.y / 2.0 {
-            // println!("bullet: despawn");
+            // println!("player.bullet: despawn");
             commands.entity(entity).despawn();
         }
     }

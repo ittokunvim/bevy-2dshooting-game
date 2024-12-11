@@ -6,6 +6,12 @@ mod ship;
 #[derive(Component)]
 struct Enemy;
 
+#[derive(Component)]
+struct Bullet {
+    first: usize,
+    last: usize,
+}
+
 pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {

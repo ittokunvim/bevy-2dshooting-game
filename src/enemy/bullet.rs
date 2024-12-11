@@ -5,7 +5,10 @@ use crate::{
     GRID_SIZE,
     PATH_IMAGE_ENEMY_BULLET,
 };
-use crate::enemy::Enemy;
+use crate::enemy::{
+    Enemy,
+    Bullet,
+};
 
 const IMAGE_SIZE: UVec2 = UVec2::new(4, 16);
 const COLUMN: u32 = 4;
@@ -20,12 +23,6 @@ struct BulletImage(Handle<Image>);
 
 #[derive(Resource)]
 struct ShootTimer(Timer);
-
-#[derive(Component)]
-struct Bullet {
-    first: usize,
-    last: usize,
-}
 
 #[derive(Component, Deref, DerefMut)]
 struct AnimationTimer(Timer);

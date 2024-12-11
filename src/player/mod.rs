@@ -9,6 +9,12 @@ struct Player {
     last: usize,
 }
 
+#[derive(Component)]
+struct Bullet {
+    first: usize,
+    last: usize,
+}
+
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {

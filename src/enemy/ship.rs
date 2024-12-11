@@ -12,7 +12,7 @@ const SCALE: Vec3 = Vec3::splat(1.0);
 const TRANSLATION: Vec3 = Vec3::new(0.0, GRID_SIZE * 12.0, 99.0);
 const DEGREES: f32 = 180.0;
 const DIRECTION: Vec2 = Vec2::new(-1.0, 0.0);
-const SPEED: f32 = 100.0;
+const SPEED: f32 = 256.0;
 
 #[derive(Component, Deref, DerefMut)]
 struct Velocity(Vec2);
@@ -21,7 +21,7 @@ fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
-    println!("enemy: setup");
+    println!("enemy.ship: setup");
     let image = asset_server.load(PATH_IMAGE_ENEMY_SHIP);
 
     commands.spawn((
@@ -57,7 +57,7 @@ fn change_direction(
         -WINDOW_SIZE.x / 2.0 > transform.translation.x - SIZE / 4.0;
 
     if left_window_collision || right_window_collision {
-        println!("enemy: change direction");
+        // println!("enemy.ship: change direction");
         velocity.x = -velocity.x;
     }
 }
