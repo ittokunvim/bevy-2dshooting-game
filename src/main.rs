@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+mod enemy;
 mod player;
 
 const GAMETITLE: &str = "2Dシューティングゲーム";
@@ -25,6 +26,7 @@ fn main() {
         .insert_resource(ClearColor(BACKGROUND_COLOR))
         .insert_resource(Time::<Fixed>::from_seconds(1.0 / 60.0))
         .add_systems(Startup, setup)
+        .add_plugins(enemy::EnemyPlugin)
         .add_plugins(player::PlayerPlugin)
         .run();
 }
