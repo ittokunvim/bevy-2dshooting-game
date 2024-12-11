@@ -4,8 +4,9 @@ use crate::{
     WINDOW_SIZE,
     GRID_SIZE,
     PATH_IMAGE_PLAYER_SHIP,
+    PLAYER_SIZE as SIZE,
+    PlayerShip,
 };
-use crate::player::Player;
 
 const IMAGE_SIZE: UVec2 = UVec2::splat(32);
 const COLUMN: u32 = 4;
@@ -13,7 +14,6 @@ const ROW: u32 = 1;
 const SCALE: Vec3 = Vec3::splat(2.0);
 const TRANSLATION: Vec3 = Vec3::new(0.0, GRID_SIZE * -12.0, 99.0);
 const SPEED: f32 = 256.0;
-const SIZE: f32 = 64.0;
 
 fn setup(
     mut commands: Commands,
@@ -24,7 +24,7 @@ fn setup(
     let texture = asset_server.load(PATH_IMAGE_PLAYER_SHIP);
     let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
-    let animation_indices = Player { first: 0, last: 3, };
+    let animation_indices = PlayerShip { first: 0, last: 3, };
 
     commands.spawn((
         Sprite::from_atlas_image(
@@ -44,7 +44,7 @@ fn setup(
 }
 
 fn movement(
-    mut query: Query<&mut Transform, With<Player>>,
+    mut query: Query<&mut Transform, With<PlayerShip>>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
     time_step: Res<Time<Fixed>>,
 ) {
@@ -77,8 +77,8 @@ fn movement(
 }
 
 fn damege(
-    mut query: Query<(&Player, &mut Sprite), With<Player>>,
     events: Res<ButtonInput<MouseButton>>,
+    mut query: Query<(&PlayerShip, &mut Sprite), With<PlayerShip>>,
 ) {
     if !events.just_pressed(MouseButton::Left) { return }
 

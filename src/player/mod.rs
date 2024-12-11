@@ -3,18 +3,6 @@ use bevy::prelude::*;
 mod bullet;
 mod ship;
 
-#[derive(Component)]
-struct Player {
-    first: usize,
-    last: usize,
-}
-
-#[derive(Component)]
-struct Bullet {
-    first: usize,
-    last: usize,
-}
-
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {

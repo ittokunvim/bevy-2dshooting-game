@@ -4,8 +4,8 @@ use crate::{
     WINDOW_SIZE,
     GRID_SIZE,
     PATH_IMAGE_ENEMY_SHIP,
+    EnemyShip,
 };
-use crate::enemy::Enemy;
 
 const SIZE: f32 = 64.0;
 const SCALE: Vec3 = Vec3::splat(1.0);
@@ -31,13 +31,13 @@ fn setup(
             rotation: Quat::from_rotation_z(DEGREES.to_radians()),
             scale: SCALE,
         },
-        Enemy,
+        EnemyShip,
         Velocity(DIRECTION * SPEED),
     ));
 }
 
 fn apply_velocity(
-    mut query: Query<(&mut Transform, &Velocity), With<Enemy>>,
+    mut query: Query<(&mut Transform, &Velocity), With<EnemyShip>>,
     time_step: Res<Time<Fixed>>,
 ) {
     for (mut transform, velocity) in &mut query {
@@ -48,7 +48,7 @@ fn apply_velocity(
 }
 
 fn change_direction(
-    mut query: Query<(&mut Velocity, &Transform), With<Enemy>>,
+    mut query: Query<(&mut Velocity, &Transform), With<EnemyShip>>,
 ) {
     let (mut velocity, transform) = query.single_mut();
     let left_window_collision =

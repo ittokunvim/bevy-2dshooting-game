@@ -13,6 +13,32 @@ const PATH_IMAGE_ENEMY_SHIP: &str = "bevy-2dshooting-game/enemy-ship.png";
 const PATH_IMAGE_ENEMY_BULLET: &str = "bevy-2dshooting-game/enemy-bullet.png";
 const PATH_SOUND_SHOOT: &str = "bevy-2dshooting-game/shoot.ogg";
 
+const PLAYER_SIZE: f32 = 64.0;
+
+#[derive(Component)]
+struct PlayerShip {
+    first: usize,
+    last: usize,
+}
+
+#[derive(Component)]
+struct PlayerBullet {
+    first: usize,
+    last: usize,
+}
+
+#[derive(Component)]
+struct EnemyShip;
+
+#[derive(Component)]
+struct EnemyBullet {
+    first: usize,
+    last: usize,
+}
+
+#[derive(Event, Default)]
+struct EnemyBulletHitEvent;
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins

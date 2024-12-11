@@ -5,10 +5,8 @@ use crate::{
     GRID_SIZE,
     PATH_IMAGE_PLAYER_BULLET,
     PATH_SOUND_SHOOT,
-};
-use crate::player::{
-    Player,
-    Bullet,
+    PlayerShip,
+    PlayerBullet,
 };
 
 const IMAGE_SIZE: UVec2 = UVec2::splat(32);
@@ -44,7 +42,7 @@ fn setup(
 }
 
 fn animation(
-    mut query: Query<(&Bullet, &mut AnimationTimer, &mut Sprite), With<Bullet>>,
+    mut query: Query<(&PlayerBullet, &mut AnimationTimer, &mut Sprite), With<PlayerBullet>>,
     time: Res<Time>,
 ) {
     for (prop, mut timer, mut sprite) in &mut query {
@@ -60,7 +58,7 @@ fn animation(
 }
 
 fn movement(
-    mut query: Query<&mut Transform, With<Bullet>>,
+    mut query: Query<&mut Transform, With<PlayerBullet>>,
     time_step: Res<Time<Fixed>>,
 ) {
     for mut transform in &mut query {
@@ -83,14 +81,14 @@ fn shoot(
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
     mut events: EventReader<ShootEvent>,
     bullet_image: Res<BulletImage>,
-    player_query: Query<&Transform, With<Player>>,
+    player_query: Query<&Transform, With<PlayerShip>>,
 ) {
     if events.is_empty() { return }
     events.clear();
 
     let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
-    let animation_indices = Bullet { first: 0, last: 3, };
+    let animation_indices = PlayerBullet { first: 0, last: 3, };
     let player_transform = player_query.single();
     let translation = Vec3::new(
         player_transform.translation.x, 
@@ -128,7 +126,7 @@ fn play(
 
 fn despawn(
     mut commands: Commands,
-    query: Query<(Entity, &Transform), With<Bullet>>,
+    query: Query<(Entity, &Transform), With<PlayerBullet>>,
 ) {
     for (entity, transform) in  &query {
         if transform.translation.y >= WINDOW_SIZE.y / 2.0 {

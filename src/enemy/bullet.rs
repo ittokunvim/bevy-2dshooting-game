@@ -1,13 +1,17 @@
-use bevy::prelude::*;
+use bevy::{
+    prelude::*,
+    math::bounding::{Aabb2d, IntersectsVolume},
+};
 
 use crate::{
     WINDOW_SIZE,
     GRID_SIZE,
     PATH_IMAGE_ENEMY_BULLET,
-};
-use crate::enemy::{
-    Enemy,
-    Bullet,
+    PLAYER_SIZE,
+    PlayerShip,
+    EnemyShip,
+    EnemyBullet,
+    EnemyBulletHitEvent,
 };
 
 const IMAGE_SIZE: UVec2 = UVec2::new(4, 16);
@@ -17,6 +21,7 @@ const SCALE: Vec3 = Vec3::splat(2.0);
 const SPEED: f32 = 256.0;
 const FPS: f32 = 0.1;
 const SHOOT_INTERVAL: f32 = 0.5;
+const SIZE: Vec2 = Vec2::new(8.0, 32.0);
 
 #[derive(Resource, Deref)]
 struct BulletImage(Handle<Image>);
@@ -38,7 +43,7 @@ fn setup(
 }
 
 fn animation(
-    mut query: Query<(&Bullet, &mut AnimationTimer, &mut Sprite), With<Bullet>>,
+    mut query: Query<(&EnemyBullet, &mut AnimationTimer, &mut Sprite), With<EnemyBullet>>,
     time: Res<Time>,
 ) {
     for (prop, mut timer, mut sprite) in &mut query {
@@ -54,7 +59,7 @@ fn animation(
 }
 
 fn movement(
-    mut query: Query<&mut Transform, With<Bullet>>,
+    mut query: Query<&mut Transform, With<EnemyBullet>>,
     time_step: Res<Time<Fixed>>,
 ) {
     for mut transform in &mut query {
@@ -68,14 +73,14 @@ fn shoot(
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
     mut timer: ResMut<ShootTimer>,
     bullet_image: Res<BulletImage>,
-    enemy_query: Query<&Transform, With<Enemy>>,
+    enemy_query: Query<&Transform, With<EnemyShip>>,
     time: Res<Time>,
 ) {
     if !timer.0.tick(time.delta()).just_finished() { return }
 
     let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
-    let animation_indices = Bullet { first: 0, last: 3, };
+    let animation_indices = EnemyBullet { first: 0, last: 3, };
     let enemy_transform = enemy_query.single();
     let translation = Vec3::new(
         enemy_transform.translation.x, 
@@ -103,7 +108,7 @@ fn shoot(
 
 fn despawn(
     mut commands: Commands,
-    query: Query<(Entity, &Transform), With<Bullet>>,
+    query: Query<(Entity, &Transform), With<EnemyBullet>>,
 ) {
     for (entity, transform) in &query {
         if transform.translation.y <= -WINDOW_SIZE.y / 2.0 {
@@ -127,6 +132,7 @@ impl Plugin for BulletPlugin {
                 animation,
                 movement,
                 shoot,
+                check_bullet_hit,
                 despawn,
             ))
         ;
