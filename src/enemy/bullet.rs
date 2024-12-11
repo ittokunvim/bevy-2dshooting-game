@@ -106,6 +106,29 @@ fn shoot(
     ));
 }
 
+fn check_bullet_hit(
+    mut commands: Commands,
+    mut events: EventWriter<EnemyBulletHitEvent>,
+    bullet_query: Query<(Entity, &Transform), (With<EnemyBullet>, Without<PlayerShip>)>,
+    player_query: Query<&Transform, (With<PlayerShip>, Without<EnemyBullet>)>,
+) {
+    let player_transform = player_query.single();
+    let player_pos = player_transform.translation.xy();
+
+    for (bullet_entity, bullet_transform) in &bullet_query {
+        let bullet_pos = bullet_transform.translation.xy();
+
+        let collision = Aabb2d::new(player_pos, Vec2::splat(PLAYER_SIZE / 2.0))
+            .intersects(&Aabb2d::new(bullet_pos, SIZE / 2.0));
+
+        if collision {
+            println!("enemy.bullet: enemy bullet hit player");
+            events.send_default();
+            commands.entity(bullet_entity).despawn();
+        }
+    }
+}
+
 fn despawn(
     mut commands: Commands,
     query: Query<(Entity, &Transform), With<EnemyBullet>>,

@@ -6,6 +6,7 @@ use crate::{
     PATH_IMAGE_PLAYER_SHIP,
     PLAYER_SIZE as SIZE,
     PlayerShip,
+    EnemyBulletHitEvent,
 };
 
 const IMAGE_SIZE: UVec2 = UVec2::splat(32);
@@ -77,13 +78,14 @@ fn movement(
 }
 
 fn damege(
-    events: Res<ButtonInput<MouseButton>>,
     mut query: Query<(&PlayerShip, &mut Sprite), With<PlayerShip>>,
+    mut events: EventReader<EnemyBulletHitEvent>,
 ) {
-    if !events.just_pressed(MouseButton::Left) { return }
+    if events.is_empty() { return }
+    events.clear();
 
     let Ok((prop, mut sprite)) = query.get_single_mut() else { return };
-    // println!("player.ship: damege");
+    println!("player.ship: damege");
     if let Some(atlas) = &mut sprite.texture_atlas {
         atlas.index = if atlas.index == prop.last
             { prop.first } else { atlas.index + 1 }
