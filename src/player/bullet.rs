@@ -3,10 +3,10 @@ use bevy::prelude::*;
 use crate::{
     WINDOW_SIZE,
     GRID_SIZE,
-    PATH_IMAGE_BULLET,
+    PATH_IMAGE_PLAYER_BULLET,
     PATH_SOUND_SHOOT,
-    Player,
 };
+use crate::player::Player;
 
 const IMAGE_SIZE: UVec2 = UVec2::splat(32);
 const COLUMN: u32 = 4;
@@ -39,7 +39,7 @@ fn setup(
 ) {
     println!("bullet: setup");
     // bullet image
-    let handle: Handle<Image> = asset_server.load(PATH_IMAGE_BULLET);
+    let handle: Handle<Image> = asset_server.load(PATH_IMAGE_PLAYER_BULLET);
     commands.insert_resource(BulletImage(handle));
     // shoot sound
     let handle = asset_server.load(PATH_SOUND_SHOOT);

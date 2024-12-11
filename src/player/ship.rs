@@ -3,9 +3,9 @@ use bevy::prelude::*;
 use crate::{
     WINDOW_SIZE,
     GRID_SIZE,
-    PATH_IMAGE_PLAYER,
-    Player,
+    PATH_IMAGE_PLAYER_SHIP,
 };
+use crate::player::Player;
 
 const IMAGE_SIZE: UVec2 = UVec2::splat(32);
 const COLUMN: u32 = 4;
@@ -21,7 +21,7 @@ fn setup(
     asset_server: Res<AssetServer>,
 ) {
     println!("player: setup");
-    let texture = asset_server.load(PATH_IMAGE_PLAYER);
+    let texture = asset_server.load(PATH_IMAGE_PLAYER_SHIP);
     let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
     let animation_indices = Player { first: 0, last: 3, };
@@ -90,9 +90,9 @@ fn damege(
     }
 }
 
-pub struct PlayerPlugin;
+pub struct ShipPlugin;
 
-impl Plugin for PlayerPlugin {
+impl Plugin for ShipPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_systems(Startup, setup)
