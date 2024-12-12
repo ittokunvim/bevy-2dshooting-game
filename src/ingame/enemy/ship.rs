@@ -11,6 +11,7 @@ use crate::ingame::{
     EnemyShip,
     PlayerBulletHitEvent,
 };
+use crate::ingame::enemy::EnemyDespawnEvent;
 
 const SCALE: Vec3 = Vec3::splat(1.0);
 const TRANSLATION: Vec3 = Vec3::new(0.0, GRID_SIZE * 12.0, 99.0);
@@ -69,13 +70,15 @@ fn change_direction(
 
 fn despawn(
     mut commands: Commands,
-    mut events: EventReader<PlayerBulletHitEvent>,
+    mut player_bullet_hit_events: EventReader<PlayerBulletHitEvent>,
+    mut enemy_despawn_events: EventWriter<EnemyDespawnEvent>,
     query: Query<Entity, With<EnemyShip>>,
 ) {
-    if events.is_empty() { return }
-    events.clear();
+    if player_bullet_hit_events.is_empty() { return }
+    player_bullet_hit_events.clear();
 
     for entity in &query {
+        enemy_despawn_events.send_default();
         // println!("enemy.ship: despawn");
         commands.entity(entity).despawn();
     }
