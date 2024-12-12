@@ -32,6 +32,12 @@ struct BulletImage(Handle<Image>);
 #[derive(Resource)]
 struct ShootTimer(Timer);
 
+#[derive(Component)]
+struct AnimationIndices {
+    first: usize,
+    last: usize,
+}
+
 #[derive(Component, Deref, DerefMut)]
 struct AnimationTimer(Timer);
 
@@ -46,16 +52,16 @@ fn setup(
 }
 
 fn animation(
-    mut query: Query<(&EnemyBullet, &mut AnimationTimer, &mut Sprite), With<EnemyBullet>>,
+    mut query: Query<(&AnimationIndices, &mut AnimationTimer, &mut Sprite), With<EnemyBullet>>,
     time: Res<Time>,
 ) {
-    for (prop, mut timer, mut sprite) in &mut query {
+    for (indices, mut timer, mut sprite) in &mut query {
         timer.tick(time.delta());
 
         if timer.just_finished() {
             if let Some(atlas) = &mut sprite.texture_atlas {
-                atlas.index = if atlas.index == prop.last 
-                    { prop.first } else { atlas.index + 1 }
+                atlas.index = if atlas.index == indices.last 
+                    { indices.first } else { atlas.index + 1 }
             }
         }
     }
@@ -83,7 +89,7 @@ fn shoot(
 
     let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
-    let animation_indices = EnemyBullet { first: 0, last: 3, };
+    let animation_indices = AnimationIndices { first: 0, last: 3, };
     let enemy_transform = enemy_query.single();
     let translation = Vec3::new(
         enemy_transform.translation.x, 
@@ -106,6 +112,7 @@ fn shoot(
         },
         animation_indices,
         AnimationTimer(Timer::from_seconds(FPS, TimerMode::Repeating)),
+        EnemyBullet,
     ));
 }
 
@@ -122,10 +129,10 @@ fn check_bullet_hit(
         let bullet_pos = bullet_transform.translation.xy();
 
         let collision = Aabb2d::new(bullet_pos, SIZE / 2.0)
-            .intersects(&Aabb2d::new(player_pos, Vec2::splat(PLAYER_SIZE / 2.0)));
+            .intersects(&Aabb2d::new(player_pos, PLAYER_SIZE / 2.0));
 
         if collision {
-            println!("enemy.bullet: enemy bullet hit player");
+            // println!("enemy.bullet: enemy bullet hit player");
             events.send_default();
             commands.entity(bullet_entity).despawn();
         }

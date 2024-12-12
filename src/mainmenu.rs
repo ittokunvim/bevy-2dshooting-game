@@ -3,7 +3,6 @@ use bevy::prelude::*;
 use crate::{
     GAMETITLE,
     PATH_FONT,
-    // PATH_IMAGE_MAINMENU,
     AppState,
 };
 

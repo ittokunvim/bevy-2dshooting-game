@@ -6,11 +6,11 @@ use crate::{
 };
 use crate::ingame::{
     GRID_SIZE,
+    ENEMY_SIZE as SIZE,
     PATH_IMAGE_ENEMY_SHIP,
     EnemyShip,
 };
 
-const SIZE: f32 = 64.0;
 const SCALE: Vec3 = Vec3::splat(1.0);
 const TRANSLATION: Vec3 = Vec3::new(0.0, GRID_SIZE * 12.0, 99.0);
 const DEGREES: f32 = 180.0;
@@ -55,9 +55,9 @@ fn change_direction(
 ) {
     let (mut velocity, transform) = query.single_mut();
     let left_window_collision =
-        WINDOW_SIZE.x / 2.0 < transform.translation.x + SIZE / 4.0;
+        WINDOW_SIZE.x / 2.0 < transform.translation.x + SIZE.x / 4.0;
     let right_window_collision =
-        -WINDOW_SIZE.x / 2.0 > transform.translation.x - SIZE / 4.0;
+        -WINDOW_SIZE.x / 2.0 > transform.translation.x - SIZE.x / 4.0;
 
     if left_window_collision || right_window_collision {
         // println!("enemy.ship: change direction");

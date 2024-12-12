@@ -12,6 +12,12 @@ use crate::ingame::{
     EnemyBulletHitEvent,
 };
 
+#[derive(Component)]
+struct AnimationIndices {
+    first: usize,
+    last: usize,
+}
+
 const IMAGE_SIZE: UVec2 = UVec2::splat(32);
 const COLUMN: u32 = 4;
 const ROW: u32 = 1;
@@ -28,7 +34,7 @@ fn setup(
     let texture = asset_server.load(PATH_IMAGE_PLAYER_SHIP);
     let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
-    let animation_indices = PlayerShip { first: 0, last: 3, };
+    let animation_indices = AnimationIndices { first: 0, last: 3, };
 
     commands.spawn((
         Sprite::from_atlas_image(
@@ -44,6 +50,7 @@ fn setup(
             ..Default::default()
         },
         animation_indices,
+        PlayerShip,
     ));
 }
 
@@ -68,30 +75,30 @@ fn movement(
     // set player x position
     let new_player_position_x = transform.translation.x
         + direction.x * SPEED * time_step.delta().as_secs_f32();
-    let left_bound = -WINDOW_SIZE.x / 2.0 + SIZE / 2.0;
-    let right_bound = WINDOW_SIZE.x / 2.0 - SIZE / 2.0;
+    let left_bound = -WINDOW_SIZE.x / 2.0 + SIZE.x / 2.0;
+    let right_bound = WINDOW_SIZE.x / 2.0 - SIZE.x / 2.0;
     // set player y position
     let new_player_position_y = transform.translation.y
         + direction.y * SPEED * time_step.delta().as_secs_f32();
-    let up_bound = -WINDOW_SIZE.y / 2.0 + SIZE / 2.0;
-    let down_bound = WINDOW_SIZE.y / 2.0 - SIZE / 2.0;
+    let up_bound = -WINDOW_SIZE.y / 2.0 + SIZE.y / 2.0;
+    let down_bound = WINDOW_SIZE.y / 2.0 - SIZE.y / 2.0;
     // movement player
     transform.translation.x = new_player_position_x.clamp(left_bound, right_bound);
     transform.translation.y = new_player_position_y.clamp(up_bound, down_bound);
 }
 
 fn damege(
-    mut query: Query<(&PlayerShip, &mut Sprite), With<PlayerShip>>,
+    mut query: Query<(&AnimationIndices, &mut Sprite), With<PlayerShip>>,
     mut events: EventReader<EnemyBulletHitEvent>,
 ) {
     if events.is_empty() { return }
     events.clear();
 
-    let Ok((prop, mut sprite)) = query.get_single_mut() else { return };
-    println!("player.ship: damege");
+    let Ok((indices, mut sprite)) = query.get_single_mut() else { return };
+    // println!("player.ship: damege");
     if let Some(atlas) = &mut sprite.texture_atlas {
-        atlas.index = if atlas.index == prop.last
-            { prop.first } else { atlas.index + 1 }
+        atlas.index = if atlas.index == indices.last
+            { indices.first } else { atlas.index + 1 }
     }
 }
 

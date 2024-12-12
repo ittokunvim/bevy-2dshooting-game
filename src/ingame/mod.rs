@@ -10,32 +10,23 @@ const PATH_IMAGE_ENEMY_SHIP: &str = "bevy-2dshooting-game/enemy-ship.png";
 const PATH_IMAGE_ENEMY_BULLET: &str = "bevy-2dshooting-game/enemy-bullet.png";
 const PATH_SOUND_SHOOT: &str = "bevy-2dshooting-game/shoot.ogg";
 
-const PLAYER_SIZE: f32 = 64.0;
-const ENEMY_SIZE: f32 = 32.0;
+const PLAYER_SIZE: Vec2 = Vec2::splat(64.0);
+const ENEMY_SIZE: Vec2 = Vec2::splat(32.0);
 
 #[derive(Component)]
-struct PlayerShip {
-    first: usize,
-    last: usize,
-}
+struct PlayerShip;
 
 #[derive(Component)]
-struct PlayerBullet {
-    first: usize,
-    last: usize,
-}
-
-#[derive(Event, Default)]
-struct PlayerBulletHitEvent;
+struct PlayerBullet;
 
 #[derive(Component)]
 struct EnemyShip;
 
 #[derive(Component)]
-struct EnemyBullet {
-    first: usize,
-    last: usize,
-}
+struct EnemyBullet;
+
+#[derive(Event, Default)]
+struct PlayerBulletHitEvent;
 
 #[derive(Event, Default)]
 struct EnemyBulletHitEvent;
