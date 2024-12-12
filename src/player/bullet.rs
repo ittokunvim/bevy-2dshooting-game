@@ -1,12 +1,18 @@
-use bevy::prelude::*;
+use bevy::{
+    prelude::*,
+    math::bounding::{Aabb2d, IntersectsVolume},
+};
 
 use crate::{
     WINDOW_SIZE,
     GRID_SIZE,
     PATH_IMAGE_PLAYER_BULLET,
     PATH_SOUND_SHOOT,
+    ENEMY_SIZE,
     PlayerShip,
     PlayerBullet,
+    PlayerBulletHitEvent,
+    EnemyShip,
 };
 
 const IMAGE_SIZE: UVec2 = UVec2::splat(32);
@@ -15,6 +21,7 @@ const ROW: u32 = 1;
 const SPEED: f32 = 512.0;
 const FPS: f32 = 0.1;
 const KEYCODE: KeyCode = KeyCode::Space;
+const SIZE: Vec2 = Vec2::splat(32.0);
 
 #[derive(Resource, Deref)]
 struct BulletImage(Handle<Image>);
@@ -110,6 +117,29 @@ fn shoot(
     ));
 }
 
+fn check_bullet_hit(
+    mut commands: Commands,
+    mut events: EventWriter<PlayerBulletHitEvent>,
+    bullet_query: Query<(Entity, &Transform), (With<PlayerBullet>, Without<EnemyShip>)>,
+    enemy_query: Query<&Transform, (With<EnemyShip>, Without<PlayerBullet>)>,
+) {
+    for (bullet_entity, bullet_transform) in &bullet_query {
+        let bullet_pos = bullet_transform.translation.xy();
+
+        for enemy_transform in &enemy_query {
+            let enemy_pos = enemy_transform.translation.xy();
+            let collision = Aabb2d::new(bullet_pos, SIZE / 2.0)
+                .intersects(&Aabb2d::new(enemy_pos, Vec2::splat(ENEMY_SIZE / 2.0)));
+
+            if collision {
+                println!("player.bullet: player bullet hit enemy");
+                events.send_default();
+                commands.entity(bullet_entity).despawn();
+            }
+        }
+    }
+}
+
 fn play(
     mut events: EventReader<ShootEvent>,
     mut commands: Commands,
@@ -148,6 +178,7 @@ impl Plugin for BulletPlugin {
                 movement,
                 event,
                 shoot,
+                check_bullet_hit,
                 play,
                 despawn,
             ))

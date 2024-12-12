@@ -118,8 +118,8 @@ fn check_bullet_hit(
     for (bullet_entity, bullet_transform) in &bullet_query {
         let bullet_pos = bullet_transform.translation.xy();
 
-        let collision = Aabb2d::new(player_pos, Vec2::splat(PLAYER_SIZE / 2.0))
-            .intersects(&Aabb2d::new(bullet_pos, SIZE / 2.0));
+        let collision = Aabb2d::new(bullet_pos, SIZE / 2.0)
+            .intersects(&Aabb2d::new(player_pos, Vec2::splat(PLAYER_SIZE / 2.0)));
 
         if collision {
             println!("enemy.bullet: enemy bullet hit player");

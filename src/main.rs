@@ -14,6 +14,7 @@ const PATH_IMAGE_ENEMY_BULLET: &str = "bevy-2dshooting-game/enemy-bullet.png";
 const PATH_SOUND_SHOOT: &str = "bevy-2dshooting-game/shoot.ogg";
 
 const PLAYER_SIZE: f32 = 64.0;
+const ENEMY_SIZE: f32 = 32.0;
 
 #[derive(Component)]
 struct PlayerShip {
@@ -26,6 +27,9 @@ struct PlayerBullet {
     first: usize,
     last: usize,
 }
+
+#[derive(Event, Default)]
+struct PlayerBulletHitEvent;
 
 #[derive(Component)]
 struct EnemyShip;
@@ -51,6 +55,8 @@ fn main() {
                 ..Default::default()
             })
         )
+        .add_event::<PlayerBulletHitEvent>()
+        .add_event::<EnemyBulletHitEvent>()
         .insert_resource(ClearColor(BACKGROUND_COLOR))
         .insert_resource(Time::<Fixed>::from_seconds(1.0 / 60.0))
         .add_systems(Startup, setup)
