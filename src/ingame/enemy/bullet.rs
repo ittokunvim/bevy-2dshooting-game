@@ -87,33 +87,34 @@ fn shoot(
 ) {
     if !timer.0.tick(time.delta()).just_finished() { return }
 
-    let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);
-    let texture_atlas_layout = texture_atlas_layouts.add(layout);
-    let animation_indices = AnimationIndices { first: 0, last: 3, };
-    let enemy_transform = enemy_query.single();
-    let translation = Vec3::new(
-        enemy_transform.translation.x, 
-        enemy_transform.translation.y - GRID_SIZE * 2.0, 
-        99.0,
-    );
-    // println!("enemy.bullet: shoot");
-    commands.spawn((
-        Sprite::from_atlas_image(
-            bullet_image.clone(),
-            TextureAtlas {
-                layout: texture_atlas_layout,
-                index: animation_indices.first,
+    for enemy_transform in &enemy_query {
+        let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);
+        let texture_atlas_layout = texture_atlas_layouts.add(layout);
+        let animation_indices = AnimationIndices { first: 0, last: 3, };
+        let translation = Vec3::new(
+            enemy_transform.translation.x, 
+            enemy_transform.translation.y - GRID_SIZE * 2.0, 
+            99.0,
+        );
+        // println!("enemy.bullet: shoot");
+        commands.spawn((
+            Sprite::from_atlas_image(
+                bullet_image.clone(),
+                TextureAtlas {
+                    layout: texture_atlas_layout,
+                    index: animation_indices.first,
+                },
+            ),
+            Transform {
+                translation,
+                scale: SCALE,
+                ..Default::default()
             },
-        ),
-        Transform {
-            translation,
-            scale: SCALE,
-            ..Default::default()
-        },
-        animation_indices,
-        AnimationTimer(Timer::from_seconds(FPS, TimerMode::Repeating)),
-        EnemyBullet,
-    ));
+            animation_indices,
+            AnimationTimer(Timer::from_seconds(FPS, TimerMode::Repeating)),
+            EnemyBullet,
+        ));
+    }
 }
 
 fn check_bullet_hit(

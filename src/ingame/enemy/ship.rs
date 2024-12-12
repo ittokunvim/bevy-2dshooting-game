@@ -9,6 +9,7 @@ use crate::ingame::{
     ENEMY_SIZE as SIZE,
     PATH_IMAGE_ENEMY_SHIP,
     EnemyShip,
+    PlayerBulletHitEvent,
 };
 
 const SCALE: Vec3 = Vec3::splat(1.0);
@@ -53,15 +54,30 @@ fn apply_velocity(
 fn change_direction(
     mut query: Query<(&mut Velocity, &Transform), With<EnemyShip>>,
 ) {
-    let (mut velocity, transform) = query.single_mut();
-    let left_window_collision =
+    for (mut velocity, transform) in &mut query {
+        let left_window_collision =
         WINDOW_SIZE.x / 2.0 < transform.translation.x + SIZE.x / 4.0;
-    let right_window_collision =
+        let right_window_collision =
         -WINDOW_SIZE.x / 2.0 > transform.translation.x - SIZE.x / 4.0;
 
-    if left_window_collision || right_window_collision {
-        // println!("enemy.ship: change direction");
-        velocity.x = -velocity.x;
+        if left_window_collision || right_window_collision {
+            // println!("enemy.ship: change direction");
+            velocity.x = -velocity.x;
+        }
+    }
+}
+
+fn despawn(
+    mut commands: Commands,
+    mut events: EventReader<PlayerBulletHitEvent>,
+    query: Query<Entity, With<EnemyShip>>,
+) {
+    if events.is_empty() { return }
+    events.clear();
+
+    for entity in &query {
+        // println!("enemy.ship: despawn");
+        commands.entity(entity).despawn();
     }
 }
 
@@ -74,6 +90,7 @@ impl Plugin for ShipPlugin {
             .add_systems(Update, (
                 apply_velocity,
                 change_direction,
+                despawn,
             ).run_if(in_state(AppState::Ingame)))
         ;
     }
