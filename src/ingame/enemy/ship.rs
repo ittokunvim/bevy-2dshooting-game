@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 
-use crate::WINDOW_SIZE;
+use crate::{
+    WINDOW_SIZE,
+    AppState,
+};
 use crate::ingame::{
     GRID_SIZE,
     PATH_IMAGE_ENEMY_SHIP,
@@ -67,9 +70,11 @@ pub struct ShipPlugin;
 impl Plugin for ShipPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_systems(Startup, setup)
-            .add_systems(Update, apply_velocity)
-            .add_systems(Update, change_direction)
+            .add_systems(OnEnter(AppState::Ingame), setup)
+            .add_systems(Update, (
+                apply_velocity,
+                change_direction,
+            ).run_if(in_state(AppState::Ingame)))
         ;
     }
 }

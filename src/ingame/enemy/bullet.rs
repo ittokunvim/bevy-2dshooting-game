@@ -3,7 +3,10 @@ use bevy::{
     math::bounding::{Aabb2d, IntersectsVolume},
 };
 
-use crate::WINDOW_SIZE;
+use crate::{
+    WINDOW_SIZE,
+    AppState,
+};
 use crate::ingame::{
     GRID_SIZE,
     PATH_IMAGE_ENEMY_BULLET,
@@ -150,14 +153,14 @@ impl Plugin for BulletPlugin {
                 SHOOT_INTERVAL, 
                 TimerMode::Repeating,
             )))
-            .add_systems(Startup, setup)
+            .add_systems(OnEnter(AppState::Ingame), setup)
             .add_systems(Update, (
                 animation,
                 movement,
                 shoot,
                 check_bullet_hit,
                 despawn,
-            ))
+            ).run_if(in_state(AppState::Ingame)))
         ;
     }
 }
