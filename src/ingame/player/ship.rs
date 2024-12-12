@@ -6,24 +6,24 @@ use crate::{
 };
 use crate::ingame::{
     GRID_SIZE,
-    PATH_IMAGE_PLAYER_SHIP,
     PLAYER_SIZE as SIZE,
     PlayerShip,
     EnemyBulletHitEvent,
 };
 
-#[derive(Component)]
-struct AnimationIndices {
-    first: usize,
-    last: usize,
-}
-
+const PATH_IMAGE_PLAYER_SHIP: &str = "bevy-2dshooting-game/player-ship.png";
 const IMAGE_SIZE: UVec2 = UVec2::splat(32);
 const COLUMN: u32 = 4;
 const ROW: u32 = 1;
 const SCALE: Vec3 = Vec3::splat(2.0);
 const TRANSLATION: Vec3 = Vec3::new(0.0, GRID_SIZE * -12.0, 99.0);
 const SPEED: f32 = 256.0;
+
+#[derive(Component)]
+struct AnimationIndices {
+    first: usize,
+    last: usize,
+}
 
 fn setup(
     mut commands: Commands,
@@ -71,7 +71,7 @@ fn movement(
         }
     }
 
-    let mut transform = query.single_mut();
+    let Ok(mut transform) = query.get_single_mut() else { return };
     // set player x position
     let new_player_position_x = transform.translation.x
         + direction.x * SPEED * time_step.delta().as_secs_f32();
@@ -87,18 +87,21 @@ fn movement(
     transform.translation.y = new_player_position_y.clamp(up_bound, down_bound);
 }
 
-fn damege(
-    mut query: Query<(&AnimationIndices, &mut Sprite), With<PlayerShip>>,
+fn despawn(
+    mut commands: Commands,
+    mut query: Query<(Entity, &AnimationIndices, &mut Sprite), With<PlayerShip>>,
     mut events: EventReader<EnemyBulletHitEvent>,
 ) {
     if events.is_empty() { return }
     events.clear();
 
-    let Ok((indices, mut sprite)) = query.get_single_mut() else { return };
+    let Ok((entity, indices, mut sprite)) = query.get_single_mut() else { return };
     // println!("player.ship: damege");
     if let Some(atlas) = &mut sprite.texture_atlas {
-        atlas.index = if atlas.index == indices.last
-            { indices.first } else { atlas.index + 1 }
+        if atlas.index == indices.last {
+            commands.entity(entity).despawn();
+        }
+        atlas.index += 1;
     }
 }
 
@@ -110,7 +113,7 @@ impl Plugin for ShipPlugin {
             .add_systems(OnEnter(AppState::Ingame), setup)
             .add_systems(Update, (
                 movement,
-                damege,
+                despawn,
             ).run_if(in_state(AppState::Ingame)))
         ;
     }

@@ -32,25 +32,6 @@ fn setup(
     commands.insert_resource(DespawnImage(handle));
 }
 
-fn animation(
-    mut commands: Commands,
-    mut query: Query<(Entity, &AnimationIndices, &mut AnimationTimer, &mut Sprite)>,
-    time: Res<Time>,
-) {
-    for (entity, indices, mut timer, mut sprite) in &mut query {
-        timer.tick(time.delta());
-
-        if timer.just_finished() {
-            if let Some(atlas) = &mut sprite.texture_atlas {
-                if atlas.index == indices.last {
-                    commands.entity(entity).despawn();
-                }
-                atlas.index += 1;
-            }
-        }
-    }
-}
-
 fn spawn_despawn(
     mut commands: Commands,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
@@ -86,6 +67,25 @@ fn spawn_despawn(
     }
 }
 
+fn animation(
+    mut commands: Commands,
+    mut query: Query<(Entity, &AnimationIndices, &mut AnimationTimer, &mut Sprite)>,
+    time: Res<Time>,
+) {
+    for (entity, indices, mut timer, mut sprite) in &mut query {
+        timer.tick(time.delta());
+
+        if timer.just_finished() {
+            if let Some(atlas) = &mut sprite.texture_atlas {
+                if atlas.index == indices.last {
+                    commands.entity(entity).despawn();
+                }
+                atlas.index += 1;
+            }
+        }
+    }
+}
+
 pub struct DespawnPlugin;
 
 impl Plugin for DespawnPlugin {
@@ -93,8 +93,8 @@ impl Plugin for DespawnPlugin {
         app
             .add_systems(OnEnter(AppState::Ingame), setup)
             .add_systems(Update, (
-                animation,
                 spawn_despawn,
+                animation,
             ).run_if(in_state(AppState::Ingame)))
         ;
     }

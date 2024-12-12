@@ -2,7 +2,6 @@ use bevy::prelude::*;
 
 const BACKGROUND_COLOR: Color = Color::srgb(0.1, 0.1, 0.1);
 const PATH_IMAGE_BACKGROUND: &str = "bevy-2dshooting-game/background.png";
-
 const IMAGE_SIZE: UVec2 = UVec2::new(640, 480);
 const COLUMN: u32 = 9;
 const ROW: u32 = 1;

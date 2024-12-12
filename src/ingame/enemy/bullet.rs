@@ -9,14 +9,13 @@ use crate::{
 };
 use crate::ingame::{
     GRID_SIZE,
-    PATH_IMAGE_ENEMY_BULLET,
     PLAYER_SIZE,
     PlayerShip,
     EnemyShip,
-    EnemyBullet,
     EnemyBulletHitEvent,
 };
 
+const PATH_IMAGE_ENEMY_BULLET: &str = "bevy-2dshooting-game/enemy-bullet.png";
 const IMAGE_SIZE: UVec2 = UVec2::new(4, 16);
 const COLUMN: u32 = 4;
 const ROW: u32 = 1;
@@ -28,6 +27,9 @@ const SIZE: Vec2 = Vec2::new(8.0, 32.0);
 
 #[derive(Resource, Deref)]
 struct BulletImage(Handle<Image>);
+
+#[derive(Component)]
+struct EnemyBullet;
 
 #[derive(Resource)]
 struct ShootTimer(Timer);
@@ -49,32 +51,6 @@ fn setup(
     // bullet image
     let handle: Handle<Image> = asset_server.load(PATH_IMAGE_ENEMY_BULLET);
     commands.insert_resource(BulletImage(handle));
-}
-
-fn animation(
-    mut query: Query<(&AnimationIndices, &mut AnimationTimer, &mut Sprite), With<EnemyBullet>>,
-    time: Res<Time>,
-) {
-    for (indices, mut timer, mut sprite) in &mut query {
-        timer.tick(time.delta());
-
-        if timer.just_finished() {
-            if let Some(atlas) = &mut sprite.texture_atlas {
-                atlas.index = if atlas.index == indices.last 
-                    { indices.first } else { atlas.index + 1 }
-            }
-        }
-    }
-}
-
-fn movement(
-    mut query: Query<&mut Transform, With<EnemyBullet>>,
-    time_step: Res<Time<Fixed>>,
-) {
-    for mut transform in &mut query {
-        // move bullet
-        transform.translation.y -= SPEED * time_step.delta().as_secs_f32();
-    }
 }
 
 fn shoot(
@@ -117,13 +93,39 @@ fn shoot(
     }
 }
 
+fn animation(
+    mut query: Query<(&AnimationIndices, &mut AnimationTimer, &mut Sprite), With<EnemyBullet>>,
+    time: Res<Time>,
+) {
+    for (indices, mut timer, mut sprite) in &mut query {
+        timer.tick(time.delta());
+
+        if timer.just_finished() {
+            if let Some(atlas) = &mut sprite.texture_atlas {
+                atlas.index = if atlas.index == indices.last 
+                    { indices.first } else { atlas.index + 1 }
+            }
+        }
+    }
+}
+
+fn movement(
+    mut query: Query<&mut Transform, With<EnemyBullet>>,
+    time_step: Res<Time<Fixed>>,
+) {
+    for mut transform in &mut query {
+        // move bullet
+        transform.translation.y -= SPEED * time_step.delta().as_secs_f32();
+    }
+}
+
 fn check_bullet_hit(
     mut commands: Commands,
     mut events: EventWriter<EnemyBulletHitEvent>,
     bullet_query: Query<(Entity, &Transform), (With<EnemyBullet>, Without<PlayerShip>)>,
     player_query: Query<&Transform, (With<PlayerShip>, Without<EnemyBullet>)>,
 ) {
-    let player_transform = player_query.single();
+    let Ok(player_transform) = player_query.get_single() else { return };
     let player_pos = player_transform.translation.xy();
 
     for (bullet_entity, bullet_transform) in &bullet_query {
@@ -163,9 +165,9 @@ impl Plugin for BulletPlugin {
             )))
             .add_systems(OnEnter(AppState::Ingame), setup)
             .add_systems(Update, (
+                shoot,
                 animation,
                 movement,
-                shoot,
                 check_bullet_hit,
                 despawn,
             ).run_if(in_state(AppState::Ingame)))

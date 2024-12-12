@@ -9,31 +9,27 @@ use crate::{
 };
 use crate::ingame::{
     GRID_SIZE,
-    PATH_IMAGE_PLAYER_BULLET,
-    PATH_SOUND_SHOOT,
     ENEMY_SIZE,
     PlayerShip,
-    PlayerBullet,
     EnemyShip,
     PlayerBulletHitEvent,
 };
+use crate::ingame::player::ShootEvent;
 
+const PATH_IMAGE_PLAYER_BULLET: &str = "bevy-2dshooting-game/player-bullet.png";
 const IMAGE_SIZE: UVec2 = UVec2::splat(32);
+const SIZE: Vec2 = Vec2::splat(32.0);
 const COLUMN: u32 = 4;
 const ROW: u32 = 1;
 const SPEED: f32 = 512.0;
 const FPS: f32 = 0.1;
 const KEYCODE: KeyCode = KeyCode::Space;
-const SIZE: Vec2 = Vec2::splat(32.0);
 
 #[derive(Resource, Deref)]
 struct BulletImage(Handle<Image>);
 
-#[derive(Resource, Deref)]
-struct ShootSound(Handle<AudioSource>);
-
-#[derive(Event, Default)]
-struct ShootEvent;
+#[derive(Component)]
+struct PlayerBullet;
 
 #[derive(Component)]
 struct AnimationIndices {
@@ -52,9 +48,50 @@ fn setup(
     // bullet image
     let handle: Handle<Image> = asset_server.load(PATH_IMAGE_PLAYER_BULLET);
     commands.insert_resource(BulletImage(handle));
-    // shoot sound
-    let handle = asset_server.load(PATH_SOUND_SHOOT);
-    commands.insert_resource(ShootSound(handle));
+}
+
+fn event(
+    mut events: EventWriter<ShootEvent>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+) {
+    if !keyboard_input.just_pressed(KEYCODE) { return }
+    // println!("player.bullet: {:?} pressed", KEYCODE);
+    events.send_default();
+}
+
+fn shoot(
+    mut commands: Commands,
+    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
+    mut events: EventReader<ShootEvent>,
+    bullet_image: Res<BulletImage>,
+    player_query: Query<&Transform, With<PlayerShip>>,
+) {
+    if events.is_empty() { return }
+    events.clear();
+
+    let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);
+    let texture_atlas_layout = texture_atlas_layouts.add(layout);
+    let animation_indices = AnimationIndices { first: 0, last: 3, };
+    let Ok(player_transform) = player_query.get_single() else { return };
+    let translation = Vec3::new(
+        player_transform.translation.x, 
+        player_transform.translation.y + GRID_SIZE * 2.0, 
+        99.0,
+    );
+    // println!("player.bullet: shoot");
+    commands.spawn((
+        Sprite::from_atlas_image(
+            bullet_image.clone(),
+            TextureAtlas {
+                layout: texture_atlas_layout,
+                index: animation_indices.first,
+            },
+        ),
+        Transform::from_translation(translation),
+        animation_indices,
+        AnimationTimer(Timer::from_seconds(FPS, TimerMode::Repeating)),
+        PlayerBullet,
+    ));
 }
 
 fn animation(
@@ -83,50 +120,6 @@ fn movement(
     }
 }
 
-fn event(
-    mut events: EventWriter<ShootEvent>,
-    keyboard_input: Res<ButtonInput<KeyCode>>,
-) {
-    if !keyboard_input.just_pressed(KEYCODE) { return }
-    // println!("player.bullet: {:?} pressed", KEYCODE);
-    events.send_default();
-}
-
-fn shoot(
-    mut commands: Commands,
-    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
-    mut events: EventReader<ShootEvent>,
-    bullet_image: Res<BulletImage>,
-    player_query: Query<&Transform, With<PlayerShip>>,
-) {
-    if events.is_empty() { return }
-    events.clear();
-
-    let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);
-    let texture_atlas_layout = texture_atlas_layouts.add(layout);
-    let animation_indices = AnimationIndices { first: 0, last: 3, };
-    let player_transform = player_query.single();
-    let translation = Vec3::new(
-        player_transform.translation.x, 
-        player_transform.translation.y + GRID_SIZE * 2.0, 
-        99.0,
-    );
-    // println!("player.bullet: shoot");
-    commands.spawn((
-        Sprite::from_atlas_image(
-            bullet_image.clone(),
-            TextureAtlas {
-                layout: texture_atlas_layout,
-                index: animation_indices.first,
-            },
-        ),
-        Transform::from_translation(translation),
-        animation_indices,
-        AnimationTimer(Timer::from_seconds(FPS, TimerMode::Repeating)),
-        PlayerBullet,
-    ));
-}
-
 fn check_bullet_hit(
     mut commands: Commands,
     mut events: EventWriter<PlayerBulletHitEvent>,
@@ -150,20 +143,6 @@ fn check_bullet_hit(
     }
 }
 
-fn play(
-    mut events: EventReader<ShootEvent>,
-    mut commands: Commands,
-    sound: Res<ShootSound>,
-) {
-    if events.is_empty() { return }
-    events.clear();
-    // println!("player.bullet: play");
-    commands.spawn((
-        AudioPlayer(sound.clone()),
-        PlaybackSettings::DESPAWN,
-    ));
-}
-
 fn despawn(
     mut commands: Commands,
     query: Query<(Entity, &Transform), With<PlayerBullet>>,
@@ -181,15 +160,13 @@ pub struct BulletPlugin;
 impl Plugin for BulletPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_event::<ShootEvent>()
             .add_systems(OnEnter(AppState::Ingame), setup)
             .add_systems(Update, (
-                animation,
-                movement,
                 event,
                 shoot,
+                animation,
+                movement,
                 check_bullet_hit,
-                play,
                 despawn,
             ).run_if(in_state(AppState::Ingame)))
         ;

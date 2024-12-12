@@ -7,15 +7,15 @@ use crate::{
 use crate::ingame::{
     GRID_SIZE,
     ENEMY_SIZE as SIZE,
-    PATH_IMAGE_ENEMY_SHIP,
     EnemyShip,
     PlayerBulletHitEvent,
 };
 use crate::ingame::enemy::EnemyDespawnEvent;
 
-const SCALE: Vec3 = Vec3::splat(1.0);
+const PATH_IMAGE_ENEMY_SHIP: &str = "bevy-2dshooting-game/enemy-ship.png";
 const TRANSLATION: Vec3 = Vec3::new(0.0, GRID_SIZE * 12.0, 99.0);
 const DEGREES: f32 = 180.0;
+const SCALE: Vec3 = Vec3::splat(1.0);
 const DIRECTION: Vec2 = Vec2::new(-1.0, 0.0);
 const SPEED: f32 = 256.0;
 
