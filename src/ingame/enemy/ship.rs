@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
-use crate::{
-    WINDOW_SIZE,
+use crate::WINDOW_SIZE;
+use crate::ingame::{
     GRID_SIZE,
     PATH_IMAGE_ENEMY_SHIP,
     EnemyShip,
