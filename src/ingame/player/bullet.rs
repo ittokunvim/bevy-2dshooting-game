@@ -24,9 +24,13 @@ const ROW: u32 = 1;
 const SPEED: f32 = 512.0;
 const FPS: f32 = 0.1;
 const KEYCODE: KeyCode = KeyCode::Space;
+const MAX_COUNT: usize = 2;
 
 #[derive(Resource, Deref)]
 struct BulletImage(Handle<Image>);
+
+#[derive(Resource, Deref, DerefMut, Debug)]
+struct Remaining(usize);
 
 #[derive(Component)]
 struct PlayerBullet;
@@ -63,10 +67,11 @@ fn shoot(
     mut commands: Commands,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
     mut events: EventReader<ShootEvent>,
+    mut remaining: ResMut<Remaining>,
     bullet_image: Res<BulletImage>,
     player_query: Query<&Transform, With<PlayerShip>>,
 ) {
-    if events.is_empty() { return }
+    if events.is_empty() || **remaining <= 0 { return }
     events.clear();
 
     let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);
@@ -92,6 +97,7 @@ fn shoot(
         AnimationTimer(Timer::from_seconds(FPS, TimerMode::Repeating)),
         PlayerBullet,
     ));
+    **remaining -= 1;
 }
 
 fn animation(
@@ -122,7 +128,8 @@ fn movement(
 
 fn check_bullet_hit(
     mut commands: Commands,
-    mut events: EventWriter<PlayerBulletHitEvent>,
+    mut hit_events: EventWriter<PlayerBulletHitEvent>,
+    mut remaining: ResMut<Remaining>,
     bullet_query: Query<(Entity, &Transform), (With<PlayerBullet>, Without<EnemyShip>)>,
     enemy_query: Query<(Entity, &Transform), (With<EnemyShip>, Without<PlayerBullet>)>,
 ) {
@@ -138,21 +145,26 @@ fn check_bullet_hit(
             if collision {
                 // println!("player.bullet: player bullet hit enemy");
                 is_hit_bullet = true;
-                events.send(PlayerBulletHitEvent(enemy_entity, enemy_pos));
+                hit_events.send(PlayerBulletHitEvent(enemy_entity, enemy_pos));
             }
         }
         // println!("player.bullet: despawn");
-        if is_hit_bullet { commands.entity(bullet_entity).despawn() }
+        if is_hit_bullet {
+            **remaining += 1;
+            commands.entity(bullet_entity).despawn();
+        }
     }
 }
 
-fn despawn(
+fn check_bullet_offscreen(
     mut commands: Commands,
+    mut remaining: ResMut<Remaining>,
     query: Query<(Entity, &Transform), With<PlayerBullet>>,
 ) {
     for (entity, transform) in  &query {
         if transform.translation.y >= WINDOW_SIZE.y / 2.0 {
-            // println!("player.bullet: despawn");
+            // println!("player.bullet: check bullet offscreen");
+            **remaining += 1;
             commands.entity(entity).despawn();
         }
     }
@@ -163,6 +175,7 @@ pub struct BulletPlugin;
 impl Plugin for BulletPlugin {
     fn build(&self, app: &mut App) {
         app
+            .insert_resource(Remaining(MAX_COUNT))
             .add_systems(OnEnter(AppState::Ingame), setup)
             .add_systems(Update, (
                 event,
@@ -170,7 +183,7 @@ impl Plugin for BulletPlugin {
                 animation,
                 movement,
                 check_bullet_hit,
-                despawn,
+                check_bullet_offscreen,
             ).run_if(in_state(AppState::Ingame)))
         ;
     }
