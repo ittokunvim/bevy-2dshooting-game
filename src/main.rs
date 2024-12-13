@@ -24,6 +24,7 @@ fn main() {
                 }),
                 ..Default::default()
             })
+            .set(ImagePlugin::default_nearest())
         )
         .insert_state(AppState::Mainmenu)
         .insert_resource(Time::<Fixed>::from_seconds(1.0 / 60.0))
