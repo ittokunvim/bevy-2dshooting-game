@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use rand::distributions::{Distribution, Uniform};
 
 use crate::{
     WINDOW_SIZE,
@@ -13,7 +14,6 @@ use crate::ingame::{
 use crate::ingame::enemy::EnemyDespawnEvent;
 
 const PATH_IMAGE_ENEMY_SHIP: &str = "bevy-2dshooting-game/enemy-ship.png";
-const TRANSLATION: Vec3 = Vec3::new(0.0, GRID_SIZE * 12.0, 99.0);
 const DEGREES: f32 = 180.0;
 const SCALE: Vec3 = Vec3::splat(1.0);
 const DIRECTION: Vec2 = Vec2::new(-1.0, 0.0);
@@ -28,11 +28,18 @@ fn setup(
 ) {
     println!("enemy.ship: setup");
     let image = asset_server.load(PATH_IMAGE_ENEMY_SHIP);
-
+    let mut rng = rand::thread_rng();
+    let die_x = Uniform::from(-GRID_SIZE * 18.0..GRID_SIZE * 18.0);
+    let die_y = Uniform::from(GRID_SIZE * 10.0..GRID_SIZE * 12.0);
+    let translation = Vec3::new(
+        die_x.sample(&mut rng),
+        die_y.sample(&mut rng),
+        10.0,
+    );
     commands.spawn((
         Sprite::from_image(image),
         Transform {
-            translation: TRANSLATION,
+            translation,
             rotation: Quat::from_rotation_z(DEGREES.to_radians()),
             scale: SCALE,
         },
