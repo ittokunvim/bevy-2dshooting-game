@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 mod ship;
 mod bullet;
+mod sound;
 mod despawn;
 
 #[derive(Event)]
@@ -15,6 +16,7 @@ impl Plugin for EnemyPlugin {
             .add_event::<EnemyDespawnEvent>()
             .add_plugins(ship::ShipPlugin)
             .add_plugins(bullet::BulletPlugin)
+            .add_plugins(sound::SoundPlugin)
             .add_plugins(despawn::DespawnPlugin)
         ;
     }

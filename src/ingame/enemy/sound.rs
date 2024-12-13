@@ -1,30 +1,30 @@
 use bevy::prelude::*;
 
 use crate::AppState;
-use crate::ingame::player::ShootEvent;
+use crate::ingame::enemy::EnemyDespawnEvent;
 
-const PATH_SOUND_SHOOT: &str = "sounds/battle-shooting-1.ogg";
+const PATH_SOUND_DESPAWN: &str = "sounds/battle-blow-3.ogg";
 
 #[derive(Resource, Deref)]
-struct ShootSound(Handle<AudioSource>);
+struct DespawnSound(Handle<AudioSource>);
 
 fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
-    println!("player.sound: setup");
-    let handle = asset_server.load(PATH_SOUND_SHOOT);
-    commands.insert_resource(ShootSound(handle));
+    println!("enemy.sound: setup");
+    let handle = asset_server.load(PATH_SOUND_DESPAWN);
+    commands.insert_resource(DespawnSound(handle));
 }
 
 fn play_shoot_sound(
-    mut events: EventReader<ShootEvent>,
+    mut events: EventReader<EnemyDespawnEvent>,
     mut commands: Commands,
-    sound: Res<ShootSound>,
+    sound: Res<DespawnSound>,
 ) {
     if events.is_empty() { return }
     events.clear();
-    // println!("player.sound: play shoot sound");
+    // println!("enemy.sound: play despawn sound");
     commands.spawn((
         AudioPlayer(sound.clone()),
         PlaybackSettings::DESPAWN,
