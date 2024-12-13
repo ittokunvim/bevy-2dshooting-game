@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use rand::distributions::{Distribution, Uniform};
+use std::ops::Range;
 
 use crate::{
     WINDOW_SIZE,
@@ -19,6 +20,7 @@ const SCALE: Vec3 = Vec3::splat(1.0);
 const DIRECTION: Vec2 = Vec2::new(-1.0, 0.0);
 const SPEED: f32 = 256.0;
 const MAX_COUNT: usize = 4;
+const TIMER_RANGE: Range<f32> = 0.4..0.6;
 
 #[derive(Resource, Deref)]
 struct ShipImage(Handle<Image>);
@@ -48,10 +50,15 @@ fn spawn(
     let mut rng = rand::thread_rng();
     let die_x = Uniform::from(-GRID_SIZE * 18.0..GRID_SIZE * 18.0);
     let die_y = Uniform::from(GRID_SIZE * 10.0..GRID_SIZE * 12.0);
+    let die_timer = Uniform::from(TIMER_RANGE);
     let translation = Vec3::new(
         die_x.sample(&mut rng),
         die_y.sample(&mut rng),
         10.0,
+    );
+    let (duration, mode) = (
+        die_timer.sample(&mut rng),
+        TimerMode::Repeating,
     );
     commands.spawn((
         Sprite::from_image(image.clone()),
@@ -60,7 +67,7 @@ fn spawn(
             rotation: Quat::from_rotation_z(DEGREES.to_radians()),
             scale: SCALE,
         },
-        EnemyShip,
+        EnemyShip { shoot_timer: Timer::from_seconds(duration, mode) },
         Velocity(DIRECTION * SPEED),
     ));
     **count += 1;

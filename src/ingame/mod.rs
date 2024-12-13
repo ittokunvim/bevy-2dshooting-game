@@ -11,7 +11,9 @@ const ENEMY_SIZE: Vec2 = Vec2::splat(32.0);
 struct PlayerShip;
 
 #[derive(Component)]
-struct EnemyShip;
+struct EnemyShip {
+    shoot_timer: Timer,
+}
 
 #[derive(Event)]
 struct PlayerBulletHitEvent(Entity, Vec2);

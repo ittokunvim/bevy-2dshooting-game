@@ -22,7 +22,6 @@ const ROW: u32 = 1;
 const SCALE: Vec3 = Vec3::splat(2.0);
 const SPEED: f32 = 256.0;
 const FPS: f32 = 0.1;
-const SHOOT_INTERVAL: f32 = 0.5;
 const SIZE: Vec2 = Vec2::new(8.0, 32.0);
 
 #[derive(Resource, Deref)]
@@ -30,9 +29,6 @@ struct BulletImage(Handle<Image>);
 
 #[derive(Component)]
 struct EnemyBullet;
-
-#[derive(Resource)]
-struct ShootTimer(Timer);
 
 #[derive(Component)]
 struct AnimationIndices {
@@ -56,14 +52,13 @@ fn setup(
 fn shoot(
     mut commands: Commands,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
-    mut timer: ResMut<ShootTimer>,
+    mut enemy_query: Query<(&mut EnemyShip, &Transform), With<EnemyShip>>,
     bullet_image: Res<BulletImage>,
-    enemy_query: Query<&Transform, With<EnemyShip>>,
     time: Res<Time>,
 ) {
-    if !timer.0.tick(time.delta()).just_finished() { return }
+    for (mut enemy, enemy_transform) in &mut enemy_query {
+        if !enemy.shoot_timer.tick(time.delta()).just_finished() { continue }
 
-    for enemy_transform in &enemy_query {
         let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);
         let texture_atlas_layout = texture_atlas_layouts.add(layout);
         let animation_indices = AnimationIndices { first: 0, last: 3, };
@@ -159,10 +154,6 @@ pub struct BulletPlugin;
 impl Plugin for BulletPlugin {
     fn build(&self, app: &mut App) {
         app
-            .insert_resource(ShootTimer(Timer::from_seconds(
-                SHOOT_INTERVAL, 
-                TimerMode::Repeating,
-            )))
             .add_systems(OnEnter(AppState::Ingame), setup)
             .add_systems(Update, (
                 shoot,
