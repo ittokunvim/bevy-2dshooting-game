@@ -18,6 +18,13 @@ const DEGREES: f32 = 180.0;
 const SCALE: Vec3 = Vec3::splat(1.0);
 const DIRECTION: Vec2 = Vec2::new(-1.0, 0.0);
 const SPEED: f32 = 256.0;
+const MAX_COUNT: usize = 4;
+
+#[derive(Resource, Deref)]
+struct ShipImage(Handle<Image>);
+
+#[derive(Resource, Deref, DerefMut, Debug)]
+struct ShipCount(usize);
 
 #[derive(Component, Deref, DerefMut)]
 struct Velocity(Vec2);
@@ -27,7 +34,17 @@ fn setup(
     asset_server: Res<AssetServer>,
 ) {
     println!("enemy.ship: setup");
-    let image = asset_server.load(PATH_IMAGE_ENEMY_SHIP);
+    let handle: Handle<Image> = asset_server.load(PATH_IMAGE_ENEMY_SHIP);
+    commands.insert_resource(ShipImage(handle));
+}
+
+fn spawn(
+    mut commands: Commands,
+    mut count: ResMut<ShipCount>,
+    image: Res<ShipImage>,
+) {
+    if **count >= MAX_COUNT { return }
+
     let mut rng = rand::thread_rng();
     let die_x = Uniform::from(-GRID_SIZE * 18.0..GRID_SIZE * 18.0);
     let die_y = Uniform::from(GRID_SIZE * 10.0..GRID_SIZE * 12.0);
@@ -37,7 +54,7 @@ fn setup(
         10.0,
     );
     commands.spawn((
-        Sprite::from_image(image),
+        Sprite::from_image(image.clone()),
         Transform {
             translation,
             rotation: Quat::from_rotation_z(DEGREES.to_radians()),
@@ -46,6 +63,7 @@ fn setup(
         EnemyShip,
         Velocity(DIRECTION * SPEED),
     ));
+    **count += 1;
 }
 
 fn apply_velocity(
@@ -79,14 +97,13 @@ fn despawn(
     mut commands: Commands,
     mut player_bullet_hit_events: EventReader<PlayerBulletHitEvent>,
     mut enemy_despawn_events: EventWriter<EnemyDespawnEvent>,
-    query: Query<Entity, With<EnemyShip>>,
+    mut count: ResMut<ShipCount>,
 ) {
-    if player_bullet_hit_events.is_empty() { return }
-    player_bullet_hit_events.clear();
-
-    for entity in &query {
-        enemy_despawn_events.send_default();
+    for ev in player_bullet_hit_events.read() {
+        let (entity, vec2) = (ev.0, ev.1);
         // println!("enemy.ship: despawn");
+        enemy_despawn_events.send(EnemyDespawnEvent(vec2));
+        **count -= 1;
         commands.entity(entity).despawn();
     }
 }
@@ -96,8 +113,10 @@ pub struct ShipPlugin;
 impl Plugin for ShipPlugin {
     fn build(&self, app: &mut App) {
         app
+            .insert_resource(ShipCount(0))
             .add_systems(OnEnter(AppState::Ingame), setup)
             .add_systems(Update, (
+                spawn,
                 apply_velocity,
                 change_direction,
                 despawn,

@@ -124,22 +124,25 @@ fn check_bullet_hit(
     mut commands: Commands,
     mut events: EventWriter<PlayerBulletHitEvent>,
     bullet_query: Query<(Entity, &Transform), (With<PlayerBullet>, Without<EnemyShip>)>,
-    enemy_query: Query<&Transform, (With<EnemyShip>, Without<PlayerBullet>)>,
+    enemy_query: Query<(Entity, &Transform), (With<EnemyShip>, Without<PlayerBullet>)>,
 ) {
     for (bullet_entity, bullet_transform) in &bullet_query {
         let bullet_pos = bullet_transform.translation.xy();
+        let mut is_hit_bullet = false;
 
-        for enemy_transform in &enemy_query {
+        for (enemy_entity, enemy_transform) in &enemy_query {
             let enemy_pos = enemy_transform.translation.xy();
             let collision = Aabb2d::new(bullet_pos, SIZE / 2.0)
                 .intersects(&Aabb2d::new(enemy_pos, ENEMY_SIZE / 2.0));
 
             if collision {
                 // println!("player.bullet: player bullet hit enemy");
-                events.send_default();
-                commands.entity(bullet_entity).despawn();
+                is_hit_bullet = true;
+                events.send(PlayerBulletHitEvent(enemy_entity, enemy_pos));
             }
         }
+        // println!("player.bullet: despawn");
+        if is_hit_bullet { commands.entity(bullet_entity).despawn() }
     }
 }
 

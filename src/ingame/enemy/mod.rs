@@ -4,8 +4,8 @@ mod ship;
 mod bullet;
 mod despawn;
 
-#[derive(Event, Default)]
-struct EnemyDespawnEvent;
+#[derive(Event)]
+struct EnemyDespawnEvent(Vec2);
 
 pub struct EnemyPlugin;
 

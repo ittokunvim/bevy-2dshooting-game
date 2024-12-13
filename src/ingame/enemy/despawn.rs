@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 
 use crate::AppState;
-use crate::ingame::EnemyShip;
 use crate::ingame::enemy::EnemyDespawnEvent;
 
 const IMAGE_SIZE: UVec2 = UVec2::splat(64);
@@ -37,18 +36,15 @@ fn spawn_despawn(
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
     mut events: EventReader<EnemyDespawnEvent>,
     despawn_image: Res<DespawnImage>,
-    enemy_query: Query<&Transform, With<EnemyShip>>,
 ) {
-    if events.is_empty() { return }
-    events.clear();
-
-    for enemy_transform in &enemy_query {
+    for ev in events.read() {
+        let vec2 = ev.0;
         let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);
         let texture_atlas_layout = texture_atlas_layouts.add(layout);
         let animation_indices = AnimationIndices { first: 0, last: 8, };
         let translation = Vec3::new(
-            enemy_transform.translation.x, 
-            enemy_transform.translation.y,
+            vec2.x, 
+            vec2.y,
             99.0,
         );
         // println!("enemy.despawn: spawn");

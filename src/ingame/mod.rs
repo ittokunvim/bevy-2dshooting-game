@@ -13,8 +13,8 @@ struct PlayerShip;
 #[derive(Component)]
 struct EnemyShip;
 
-#[derive(Event, Default)]
-struct PlayerBulletHitEvent;
+#[derive(Event)]
+struct PlayerBulletHitEvent(Entity, Vec2);
 
 #[derive(Event, Default)]
 struct EnemyBulletHitEvent;
