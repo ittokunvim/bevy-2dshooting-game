@@ -7,6 +7,7 @@ use crate::{
 use crate::ingame::{
     GRID_SIZE,
     PLAYER_SIZE as SIZE,
+    PlayerLife,
     PlayerShip,
     PlayerDamageEvent,
 };
@@ -90,22 +91,48 @@ fn movement(
     transform.translation.y = new_player_position_y.clamp(up_bound, down_bound);
 }
 
+fn damage_life(
+    mut events: EventReader<PlayerDamageEvent>,
+    mut life: ResMut<PlayerLife>,
+) {
+    // println!("player.ship: damage_life");
+    if events.is_empty() { return }
+    events.clear();
+    // reduce player life
+    **life -= 1;
+}
+
 fn damage(
     mut commands: Commands,
     mut query: Query<(Entity, &AnimationIndices, &mut Sprite), With<PlayerShip>>,
     mut events: EventReader<PlayerDamageEvent>,
+    life: Res<PlayerLife>,
 ) {
     // println!("player.ship: damage");
     if events.is_empty() { return }
     events.clear();
 
     let Ok((entity, indices, mut sprite)) = query.get_single_mut() else { return };
-    // animation
-    if let Some(atlas) = &mut sprite.texture_atlas {
-        if atlas.index == indices.last {
-            commands.entity(entity).despawn();
+    let mut animation_flag = false;
+    let mut despawn_flag = false;
+    // set flag
+    match **life {
+        6 | 4 | 2 => animation_flag = true,
+        0 => despawn_flag = true,
+        _ => return
+    }
+    // do animation
+    if animation_flag {
+        if let Some(atlas) = &mut sprite.texture_atlas {
+            if atlas.index == indices.last {
+                commands.entity(entity).despawn();
+            }
+            atlas.index += 1;
         }
-        atlas.index += 1;
+    }
+    // despawn ship
+    if despawn_flag {
+        commands.entity(entity).despawn();
     }
 }
 
@@ -117,6 +144,7 @@ impl Plugin for ShipPlugin {
             .add_systems(OnEnter(AppState::Ingame), setup)
             .add_systems(Update, (
                 movement,
+                damage_life,
                 damage,
             ).run_if(in_state(AppState::Ingame)))
         ;
