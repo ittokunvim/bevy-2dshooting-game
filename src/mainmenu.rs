@@ -2,10 +2,10 @@ use bevy::prelude::*;
 
 use crate::{
     GAMETITLE,
+    PATH_FONT,
     AppState,
 };
 
-const PATH_FONT: &str = "fonts/misaki_gothic.ttf";
 const GAMETITLE_SIZE: f32 = 32.0;
 const GAMETITLE_COLOR: Color = Color::srgb(0.1, 0.1, 0.1);
 const CLICKSTART_TEXT: &str = "クリックしてスタート";

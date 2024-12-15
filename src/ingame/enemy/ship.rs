@@ -9,6 +9,7 @@ use crate::{
 use crate::ingame::{
     GRID_SIZE,
     ENEMY_SIZE as SIZE,
+    Score,
     EnemyShip,
     EnemyDamageEvent,
 };
@@ -109,6 +110,7 @@ fn damage(
     mut enemy_damage_events: EventReader<EnemyDamageEvent>,
     mut ship_despawn_events: EventWriter<ShipDespawnEvent>,
     mut count: ResMut<ShipCount>,
+    mut score: ResMut<Score>,
 ) {
     // println!("enemy.ship: damage");
     for damage in enemy_damage_events.read() {
@@ -117,6 +119,8 @@ fn damage(
         ship_despawn_events.send(ShipDespawnEvent(vec2));
         // decrement enemy count
         **count -= 1;
+        // increment score
+        **score += 1;
         // despawn ship
         commands.entity(entity).despawn();
     }
