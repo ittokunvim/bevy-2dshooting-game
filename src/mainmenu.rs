@@ -21,7 +21,7 @@ fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
-    println!("mainmenu: setup");
+    // println!("mainmenu: setup");
     // game title
     let (x, y, z) = (
         0.0,
@@ -81,11 +81,11 @@ fn update(
     mouse_events: Res<ButtonInput<MouseButton>>,
     query: Query<Entity, With<Mainmenu>>,
 ) {
+    // println!("mainmenu: update");
     if !mouse_events.just_pressed(MouseButton::Left) { return }
 
-    println!("mainmenu: despawn");
     for entity in query.iter() { commands.entity(entity).despawn() }
-    println!("mainmenu: moved state to Ingame from Mainmenu");
+    // AppState Mainmenu -> Ingame
     next_state.set(AppState::Ingame);
 }
 

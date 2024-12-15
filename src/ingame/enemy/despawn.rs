@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::AppState;
-use crate::ingame::enemy::EnemyDespawnEvent;
+use crate::ingame::enemy::ShipDespawnEvent;
 
 const IMAGE_SIZE: UVec2 = UVec2::splat(64);
 const COLUMN: u32 = 9;
@@ -26,7 +26,7 @@ fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
-    println!("enemy.despawn: setup");
+    // println!("enemy.despawn: setup");
     let handle: Handle<Image> = asset_server.load(PATH_IMAGE_ENEMY_DESPAWN);
     commands.insert_resource(DespawnImage(handle));
 }
@@ -34,11 +34,12 @@ fn setup(
 fn spawn_despawn(
     mut commands: Commands,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
-    mut events: EventReader<EnemyDespawnEvent>,
+    mut events: EventReader<ShipDespawnEvent>,
     despawn_image: Res<DespawnImage>,
 ) {
-    for ev in events.read() {
-        let vec2 = ev.0;
+    // println!("enemy.despawn: spawn_despawn");
+    for event in events.read() {
+        let vec2 = event.0;
         let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);
         let texture_atlas_layout = texture_atlas_layouts.add(layout);
         let animation_indices = AnimationIndices { first: 0, last: 8, };
@@ -47,7 +48,7 @@ fn spawn_despawn(
             vec2.y,
             99.0,
         );
-        // println!("enemy.despawn: spawn");
+        // despawn animation
         commands.spawn((
             Sprite::from_atlas_image(
                 despawn_image.clone(), 
@@ -68,6 +69,7 @@ fn animation(
     mut query: Query<(Entity, &AnimationIndices, &mut AnimationTimer, &mut Sprite)>,
     time: Res<Time>,
 ) {
+    // println!("enemy.despawn: animation");
     for (entity, indices, mut timer, mut sprite) in &mut query {
         timer.tick(time.delta());
 

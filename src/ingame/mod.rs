@@ -15,19 +15,19 @@ struct EnemyShip {
     shoot_timer: Timer,
 }
 
-#[derive(Event)]
-struct PlayerBulletHitEvent(Entity, Vec2);
-
 #[derive(Event, Default)]
-struct EnemyBulletHitEvent;
+struct PlayerDamageEvent;
+
+#[derive(Event)]
+struct EnemyDamageEvent(Entity, Vec2);
 
 pub struct IngamePlugin;
 
 impl Plugin for IngamePlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_event::<PlayerBulletHitEvent>()
-            .add_event::<EnemyBulletHitEvent>()
+            .add_event::<PlayerDamageEvent>()
+            .add_event::<EnemyDamageEvent>()
             .add_plugins(enemy::EnemyPlugin)
             .add_plugins(player::PlayerPlugin)
         ;

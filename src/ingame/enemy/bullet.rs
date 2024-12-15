@@ -12,7 +12,7 @@ use crate::ingame::{
     PLAYER_SIZE,
     PlayerShip,
     EnemyShip,
-    EnemyBulletHitEvent,
+    PlayerDamageEvent,
 };
 
 const PATH_IMAGE_ENEMY_BULLET: &str = "bevy-2dshooting-game/enemy-bullet.png";
@@ -28,7 +28,7 @@ const SIZE: Vec2 = Vec2::new(8.0, 32.0);
 struct BulletImage(Handle<Image>);
 
 #[derive(Component)]
-struct EnemyBullet;
+struct Bullet;
 
 #[derive(Component)]
 struct AnimationIndices {
@@ -43,8 +43,7 @@ fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
-    println!("enemy.bullet: setup");
-    // bullet image
+    // println!("enemy.bullet: setup");
     let handle: Handle<Image> = asset_server.load(PATH_IMAGE_ENEMY_BULLET);
     commands.insert_resource(BulletImage(handle));
 }
@@ -56,6 +55,7 @@ fn shoot(
     bullet_image: Res<BulletImage>,
     time: Res<Time>,
 ) {
+    // println!("enemy.bullet: shoot");
     for (mut enemy, enemy_transform) in &mut enemy_query {
         if !enemy.shoot_timer.tick(time.delta()).just_finished() { continue }
 
@@ -67,7 +67,7 @@ fn shoot(
             enemy_transform.translation.y - GRID_SIZE * 2.0, 
             99.0,
         );
-        // println!("enemy.bullet: shoot");
+        // bullet
         commands.spawn((
             Sprite::from_atlas_image(
                 bullet_image.clone(),
@@ -83,19 +83,21 @@ fn shoot(
             },
             animation_indices,
             AnimationTimer(Timer::from_seconds(FPS, TimerMode::Repeating)),
-            EnemyBullet,
+            Bullet,
         ));
     }
 }
 
 fn animation(
-    mut query: Query<(&AnimationIndices, &mut AnimationTimer, &mut Sprite), With<EnemyBullet>>,
+    mut query: Query<(&AnimationIndices, &mut AnimationTimer, &mut Sprite), With<Bullet>>,
     time: Res<Time>,
 ) {
+    // println!("enemy.bullet: animation");
     for (indices, mut timer, mut sprite) in &mut query {
         timer.tick(time.delta());
 
         if timer.just_finished() {
+            // animation
             if let Some(atlas) = &mut sprite.texture_atlas {
                 atlas.index = if atlas.index == indices.last 
                     { indices.first } else { atlas.index + 1 }
@@ -105,21 +107,22 @@ fn animation(
 }
 
 fn movement(
-    mut query: Query<&mut Transform, With<EnemyBullet>>,
+    mut query: Query<&mut Transform, With<Bullet>>,
     time_step: Res<Time<Fixed>>,
 ) {
+    // println!("enemy.bullet: movement");
     for mut transform in &mut query {
-        // move bullet
         transform.translation.y -= SPEED * time_step.delta().as_secs_f32();
     }
 }
 
-fn check_bullet_hit(
+fn check_for_hit(
     mut commands: Commands,
-    mut events: EventWriter<EnemyBulletHitEvent>,
-    bullet_query: Query<(Entity, &Transform), (With<EnemyBullet>, Without<PlayerShip>)>,
-    player_query: Query<&Transform, (With<PlayerShip>, Without<EnemyBullet>)>,
+    mut events: EventWriter<PlayerDamageEvent>,
+    bullet_query: Query<(Entity, &Transform), (With<Bullet>, Without<PlayerShip>)>,
+    player_query: Query<&Transform, (With<PlayerShip>, Without<Bullet>)>,
 ) {
+    // println!("enemy.bullet: check_for_hit");
     let Ok(player_transform) = player_query.get_single() else { return };
     let player_pos = player_transform.translation.xy();
 
@@ -130,20 +133,21 @@ fn check_bullet_hit(
             .intersects(&Aabb2d::new(player_pos, PLAYER_SIZE / 2.0));
 
         if collision {
-            // println!("enemy.bullet: enemy bullet hit player");
+            // damage player
             events.send_default();
+            // despawn bullet
             commands.entity(bullet_entity).despawn();
         }
     }
 }
 
-fn despawn(
+fn check_for_offscreen(
     mut commands: Commands,
-    query: Query<(Entity, &Transform), With<EnemyBullet>>,
+    query: Query<(Entity, &Transform), With<Bullet>>,
 ) {
+    // println!("enemy.bullet: despawn");
     for (entity, transform) in &query {
         if transform.translation.y <= -WINDOW_SIZE.y / 2.0 {
-            // println!("enemy.bullet: despawn");
             commands.entity(entity).despawn();
         }
     }
@@ -159,8 +163,8 @@ impl Plugin for BulletPlugin {
                 shoot,
                 animation,
                 movement,
-                check_bullet_hit,
-                despawn,
+                check_for_hit,
+                check_for_offscreen,
             ).run_if(in_state(AppState::Ingame)))
         ;
     }

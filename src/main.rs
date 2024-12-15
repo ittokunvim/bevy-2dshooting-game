@@ -38,6 +38,6 @@ fn main() {
 fn setup(
     mut commands: Commands,
 ) {
-    println!("main: setup");
+    // println!("main: setup");
     commands.spawn(Camera2d::default());
 }

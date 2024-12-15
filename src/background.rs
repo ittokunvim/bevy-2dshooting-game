@@ -23,7 +23,7 @@ fn setup(
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
     asset_server: Res<AssetServer>,
 ) {
-    println!("background: setup");
+    // println!("background: setup");
     let texture = asset_server.load(PATH_IMAGE_BACKGROUND);
     let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
@@ -51,11 +51,13 @@ fn update(
     mut query: Query<(&AnimationIndices, &mut AnimationTimer, &mut Sprite)>,
     time: Res<Time>,
 ) {
+    // println!("background: update");
     for (indices, mut timer, mut sprite) in &mut query {
         timer.tick(time.delta());
 
         if timer.just_finished() {
             if let Some(atlas) = &mut sprite.texture_atlas {
+                // animation
                 atlas.index = if atlas.index == indices.last
                     { indices.first } else { atlas.index + 1 }
             }
