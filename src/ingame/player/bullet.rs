@@ -178,6 +178,18 @@ fn check_for_offscreen(
     }
 }
 
+fn reset_remaining(mut remaining: ResMut<Remaining>) {
+    **remaining = MAX_COUNT;
+}
+
+fn despawn(
+    mut commands: Commands,
+    query: Query<Entity, With<Bullet>>,
+) {
+    // println!("player.bullet: despawn");
+    for entity in &query { commands.entity(entity).despawn() }
+}
+
 pub struct BulletPlugin;
 
 impl Plugin for BulletPlugin {
@@ -197,6 +209,10 @@ impl Plugin for BulletPlugin {
                 check_for_hit,
                 crate::ingame::enemy::ship::damage,
             ).chain().run_if(in_state(AppState::Ingame)))
+            .add_systems(OnExit(AppState::Ingame), (
+                reset_remaining,
+                despawn,
+            ))
         ;
     }
 }

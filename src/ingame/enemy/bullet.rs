@@ -153,6 +153,14 @@ fn check_for_offscreen(
     }
 }
 
+fn despawn(
+    mut commands: Commands,
+    query: Query<Entity, With<Bullet>>,
+) {
+    // println!("enemy.bullet: despawn");
+    for entity in &query { commands.entity(entity).despawn() }
+}
+
 pub struct BulletPlugin;
 
 impl Plugin for BulletPlugin {
@@ -172,6 +180,7 @@ impl Plugin for BulletPlugin {
                 crate::ingame::player::ship::damage_animation,
                 crate::ingame::player::ship::damage_despawn,
             ).chain().run_if(in_state(AppState::Ingame)))
+            .add_systems(OnExit(AppState::Ingame), despawn)
         ;
     }
 }

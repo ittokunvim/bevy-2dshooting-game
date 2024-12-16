@@ -130,6 +130,18 @@ fn reset_score(mut score: ResMut<Score>) {
     **score = 0;
 }
 
+fn reset_count(mut count: ResMut<ShipCount>) {
+    **count = 0;
+}
+
+fn despawn(
+    mut commands: Commands,
+    query: Query<Entity, With<EnemyShip>>,
+) {
+    // println!("enemy.ship: despawn");
+    for entity in &query { commands.entity(entity).despawn() }
+}
+
 pub struct ShipPlugin;
 
 impl Plugin for ShipPlugin {
@@ -144,6 +156,10 @@ impl Plugin for ShipPlugin {
                 // damage, // moved ingame/player/bullet.rs
             ).run_if(in_state(AppState::Ingame)))
             .add_systems(OnExit(AppState::Gameover), reset_score)
+            .add_systems(OnExit(AppState::Ingame), (
+                reset_count,
+                despawn,
+            ))
         ;
     }
 }

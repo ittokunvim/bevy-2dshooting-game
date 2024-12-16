@@ -144,6 +144,14 @@ fn reset_life(mut life: ResMut<PlayerLife>) {
     **life = LIFE;
 }
 
+fn despawn(
+    mut commands: Commands,
+    query: Query<Entity, With<PlayerShip>>,
+) {
+    // println!("player.ship: despawn");
+    for entity in &query { commands.entity(entity).despawn() }
+}
+
 pub struct ShipPlugin;
 
 impl Plugin for ShipPlugin {
@@ -157,6 +165,7 @@ impl Plugin for ShipPlugin {
                 // damage_despawn,   // moved ingame/enemy/bullet.rs
             ).run_if(in_state(AppState::Ingame)))
             .add_systems(OnExit(AppState::Gameover), reset_life)
+            .add_systems(OnExit(AppState::Ingame), despawn)
         ;
     }
 }
