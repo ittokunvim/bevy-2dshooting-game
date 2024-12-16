@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-mod ship;
+pub mod ship;
 mod bullet;
 mod sound;
 

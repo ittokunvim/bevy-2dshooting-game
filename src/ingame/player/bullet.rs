@@ -131,7 +131,7 @@ fn movement(
 
 fn check_for_hit(
     mut commands: Commands,
-    mut hit_events: EventWriter<EnemyDamageEvent>,
+    mut events: EventWriter<EnemyDamageEvent>,
     mut remaining: ResMut<Remaining>,
     bullet_query: Query<(Entity, &Transform), (With<Bullet>, Without<EnemyShip>)>,
     enemy_query: Query<(Entity, &Transform), (With<EnemyShip>, Without<Bullet>)>,
@@ -150,7 +150,7 @@ fn check_for_hit(
                 // flag a player bullet hit
                 is_hit_bullet = true;
                 // damage enemy
-                hit_events.send(EnemyDamageEvent(enemy_entity, enemy_pos));
+                events.send(EnemyDamageEvent(enemy_entity, enemy_pos));
             }
         }
         if is_hit_bullet {
@@ -190,9 +190,13 @@ impl Plugin for BulletPlugin {
                 shoot,
                 animation,
                 movement,
-                check_for_hit,
+                // check_for_hit,
                 check_for_offscreen,
             ).run_if(in_state(AppState::Ingame)))
+            .add_systems(Update, (
+                check_for_hit,
+                crate::ingame::enemy::ship::damage,
+            ).chain().run_if(in_state(AppState::Ingame)))
         ;
     }
 }

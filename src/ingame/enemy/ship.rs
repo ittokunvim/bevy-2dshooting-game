@@ -27,7 +27,7 @@ const TIMER_RANGE: Range<f32> = 0.4..0.6;
 struct ShipImage(Handle<Image>);
 
 #[derive(Resource, Deref, DerefMut, Debug)]
-struct ShipCount(usize);
+pub struct ShipCount(usize);
 
 #[derive(Component, Deref, DerefMut)]
 struct Velocity(Vec2);
@@ -105,7 +105,7 @@ fn change_direction(
     }
 }
 
-fn damage(
+pub fn damage(
     mut commands: Commands,
     mut enemy_damage_events: EventReader<EnemyDamageEvent>,
     mut ship_despawn_events: EventWriter<ShipDespawnEvent>,
@@ -137,7 +137,7 @@ impl Plugin for ShipPlugin {
                 spawn,
                 apply_velocity,
                 change_direction,
-                damage,
+                // damage, // moved ingame/player/bullet.rs
             ).run_if(in_state(AppState::Ingame)))
         ;
     }

@@ -1,12 +1,12 @@
 use bevy::prelude::*;
 
-mod ship;
+pub mod ship;
 mod bullet;
 mod sound;
 mod despawn;
 
 #[derive(Event)]
-struct ShipDespawnEvent(Vec2);
+pub struct ShipDespawnEvent(Vec2);
 
 pub struct EnemyPlugin;
 

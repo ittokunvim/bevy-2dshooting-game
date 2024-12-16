@@ -21,7 +21,7 @@ const TRANSLATION: Vec3 = Vec3::new(0.0, GRID_SIZE * -12.0, 99.0);
 const SPEED: f32 = 256.0;
 
 #[derive(Component)]
-struct AnimationIndices {
+pub struct AnimationIndices {
     first: usize,
     last: usize,
 }
@@ -91,7 +91,7 @@ fn movement(
     transform.translation.y = new_player_position_y.clamp(up_bound, down_bound);
 }
 
-fn damage_life(
+pub fn damage_life(
     mut events: EventReader<PlayerDamageEvent>,
     mut life: ResMut<PlayerLife>,
 ) {
@@ -102,36 +102,34 @@ fn damage_life(
     **life -= 1;
 }
 
-fn damage(
-    mut commands: Commands,
-    mut query: Query<(Entity, &AnimationIndices, &mut Sprite), With<PlayerShip>>,
+pub fn damage_animation(
+    mut query: Query<(&AnimationIndices, &mut Sprite), With<PlayerShip>>,
     mut events: EventReader<PlayerDamageEvent>,
     life: Res<PlayerLife>,
 ) {
-    // println!("player.ship: damage");
+    // println!("player.ship: damage_animation");
     if events.is_empty() { return }
     events.clear();
 
-    let Ok((entity, indices, mut sprite)) = query.get_single_mut() else { return };
-    let mut animation_flag = false;
-    let mut despawn_flag = false;
-    // set flag
-    match **life {
-        6 | 4 | 2 => animation_flag = true,
-        0 => despawn_flag = true,
-        _ => return
-    }
+    let Ok((indices, mut sprite)) = query.get_single_mut() else { return };
     // do animation
-    if animation_flag {
+    if **life == 6 || **life == 4 || **life == 2 {
         if let Some(atlas) = &mut sprite.texture_atlas {
-            if atlas.index == indices.last {
-                commands.entity(entity).despawn();
-            }
-            atlas.index += 1;
+            atlas.index = if atlas.index == indices.last 
+                { indices.first } else { atlas.index + 1 }
         }
     }
+}
+
+pub fn damage_despawn(
+    mut commands: Commands,
+    query: Query<Entity, With<PlayerShip>>,
+    life: Res<PlayerLife>,
+) {
+    // println!("player.ship: damage_despawn");
+    let Ok(entity) = query.get_single() else { return };
     // despawn ship
-    if despawn_flag {
+    if **life <= 0 {
         commands.entity(entity).despawn();
     }
 }
@@ -144,8 +142,9 @@ impl Plugin for ShipPlugin {
             .add_systems(OnEnter(AppState::Ingame), setup)
             .add_systems(Update, (
                 movement,
-                damage_life,
-                damage,
+                // damage_life,      // moved ingame/enemy/bullet.rs
+                // damage_animation, // moved ingame/enemy/bullet.rs
+                // damage_despawn,   // moved ingame/enemy/bullet.rs
             ).run_if(in_state(AppState::Ingame)))
         ;
     }

@@ -163,9 +163,15 @@ impl Plugin for BulletPlugin {
                 shoot,
                 animation,
                 movement,
-                check_for_hit,
+                // check_for_hit,
                 check_for_offscreen,
             ).run_if(in_state(AppState::Ingame)))
+            .add_systems(Update, (
+                check_for_hit,
+                crate::ingame::player::ship::damage_life,
+                crate::ingame::player::ship::damage_animation,
+                crate::ingame::player::ship::damage_despawn,
+            ).chain().run_if(in_state(AppState::Ingame)))
         ;
     }
 }
