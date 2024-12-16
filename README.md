@@ -4,7 +4,7 @@
 
 ## ゲーム概要
 
-画面内にいる敵を全て倒すことができるとクリアです。
+敵を倒したらスコアを獲得できるので、いっぱい倒して高スコアを目指すゲームです。
 
 ## ゲーム情報
 
@@ -39,6 +39,8 @@
 背景画像 [Void - Environment Pack](https://foozlecc.itch.io/void-environment-pack)
 
 フォント [美咲フォント](https://littlelimit.net/misaki.htm)
+
+効果音 [効果音ラボ](https://soundeffect-lab.info/)
 
 画像編集 [Pixlr](https://pixlr.com)
 
