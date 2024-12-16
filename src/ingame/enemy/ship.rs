@@ -5,11 +5,11 @@ use std::ops::Range;
 use crate::{
     WINDOW_SIZE,
     AppState,
+    Score,
 };
 use crate::ingame::{
     GRID_SIZE,
     ENEMY_SIZE as SIZE,
-    Score,
     EnemyShip,
     EnemyDamageEvent,
 };
@@ -126,6 +126,10 @@ pub fn damage(
     }
 }
 
+fn reset_score(mut score: ResMut<Score>) {
+    **score = 0;
+}
+
 pub struct ShipPlugin;
 
 impl Plugin for ShipPlugin {
@@ -139,6 +143,7 @@ impl Plugin for ShipPlugin {
                 change_direction,
                 // damage, // moved ingame/player/bullet.rs
             ).run_if(in_state(AppState::Ingame)))
+            .add_systems(OnExit(AppState::Gameover), reset_score)
         ;
     }
 }

@@ -125,12 +125,16 @@ pub fn damage_despawn(
     mut commands: Commands,
     query: Query<Entity, With<PlayerShip>>,
     life: Res<PlayerLife>,
+    mut next_state: ResMut<NextState<AppState>>,
 ) {
     // println!("player.ship: damage_despawn");
     let Ok(entity) = query.get_single() else { return };
-    // despawn ship
+
     if **life <= 0 {
+        // despawn ship
         commands.entity(entity).despawn();
+        // moved app state Ingame -> Gameover
+        next_state.set(AppState::Gameover);
     }
 }
 
