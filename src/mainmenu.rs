@@ -76,17 +76,21 @@ fn setup(
 }
 
 fn update(
-    mut commands: Commands,
     mut next_state: ResMut<NextState<AppState>>,
     mouse_events: Res<ButtonInput<MouseButton>>,
-    query: Query<Entity, With<Mainmenu>>,
 ) {
     // println!("mainmenu: update");
     if !mouse_events.just_pressed(MouseButton::Left) { return }
-
-    for entity in query.iter() { commands.entity(entity).despawn() }
     // AppState Mainmenu -> Ingame
     next_state.set(AppState::Ingame);
+}
+
+fn despawn(
+    mut commands: Commands,
+    query: Query<Entity, With<Mainmenu>>,
+) {
+    // println!("mainmenu: despawn");
+    for entity in query.iter() { commands.entity(entity).despawn() }
 }
 
 pub struct MainmenuPlugin;
@@ -96,6 +100,7 @@ impl Plugin for MainmenuPlugin {
         app
             .add_systems(OnEnter(AppState::Mainmenu), setup)
             .add_systems(Update, update.run_if(in_state(AppState::Mainmenu)))
+            .add_systems(OnExit(AppState::Mainmenu), despawn)
         ;
     }
 }

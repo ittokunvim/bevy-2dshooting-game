@@ -4,11 +4,9 @@ use crate::{
     WINDOW_SIZE,
     PATH_FONT,
     AppState,
-};
-use crate::ingame::{
     Score,
-    PlayerLife,
 };
+use crate::ingame::PlayerLife;
 
 const SCORE_TEXT: &str = "スコア: ";
 const LIFE_TEXT: &str = "ライフ: ";
@@ -59,6 +57,7 @@ fn setup(
             ..Default::default()
         },
         TextColor(TEXT_COLOR),
+        ScoreboardUi,
         ScoreText,
     ));
     // life
@@ -90,6 +89,7 @@ fn setup(
             ..Default::default()
         },
         TextColor(TEXT_COLOR),
+        ScoreboardUi,
         LifeText,
     ));
 }
@@ -114,6 +114,14 @@ fn update_life(
     **span = life.to_string();
 }
 
+fn despawn(
+    mut commands: Commands,
+    query: Query<Entity, With<ScoreboardUi>>,
+) {
+    // println!("scoreboard: despawn");
+    for entity in &query { commands.entity(entity).despawn() }
+}
+
 pub struct ScoreboardPlugin;
 
 impl Plugin for ScoreboardPlugin {
@@ -124,6 +132,7 @@ impl Plugin for ScoreboardPlugin {
                 update_score,
                 update_life,
             ).run_if(in_state(AppState::Ingame)))
+            .add_systems(OnExit(AppState::Ingame), despawn)
         ;
     }
 }

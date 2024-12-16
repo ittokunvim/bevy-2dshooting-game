@@ -7,6 +7,7 @@ use crate::{
 use crate::ingame::{
     GRID_SIZE,
     PLAYER_SIZE as SIZE,
+    PLAYER_LIFE as LIFE,
     PlayerLife,
     PlayerShip,
     PlayerDamageEvent,
@@ -138,6 +139,11 @@ pub fn damage_despawn(
     }
 }
 
+fn reset_life(mut life: ResMut<PlayerLife>) {
+    // println!("player.ship: reset_life");
+    **life = LIFE;
+}
+
 pub struct ShipPlugin;
 
 impl Plugin for ShipPlugin {
@@ -150,6 +156,7 @@ impl Plugin for ShipPlugin {
                 // damage_animation, // moved ingame/enemy/bullet.rs
                 // damage_despawn,   // moved ingame/enemy/bullet.rs
             ).run_if(in_state(AppState::Ingame)))
+            .add_systems(OnExit(AppState::Gameover), reset_life)
         ;
     }
 }
