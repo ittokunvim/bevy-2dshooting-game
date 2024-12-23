@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 mod enemy;
 mod player;
+mod camera;
 mod scoreboard;
 
 const GRID_SIZE: f32 = 16.0;
@@ -36,6 +37,7 @@ impl Plugin for IngamePlugin {
             .add_event::<EnemyDamageEvent>()
             .add_plugins(enemy::EnemyPlugin)
             .add_plugins(player::PlayerPlugin)
+            .add_plugins(camera::CameraPlugin)
             .add_plugins(scoreboard::ScoreboardPlugin)
         ;
     }
