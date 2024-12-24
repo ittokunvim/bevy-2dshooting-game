@@ -6,6 +6,7 @@ use crate::{
     WINDOW_SIZE,
     AppState,
     Score,
+    MyCamera,
 };
 use crate::ingame::{
     GRID_SIZE,
@@ -45,13 +46,16 @@ fn spawn(
     mut commands: Commands,
     mut count: ResMut<ShipCount>,
     image: Res<ShipImage>,
+    query: Query<&Transform, With<MyCamera>>,
 ) {
     // println!("enemy.ship: spawn");
     if **count >= MAX_COUNT { return }
 
     let mut rng = rand::thread_rng();
+    let Ok(camera_transform) = query.get_single() else { return };
+    let camera_y = camera_transform.translation.y;
     let die_x = Uniform::from(-GRID_SIZE * 18.0..GRID_SIZE * 18.0);
-    let die_y = Uniform::from(GRID_SIZE * 10.0..GRID_SIZE * 12.0);
+    let die_y = Uniform::from(camera_y + GRID_SIZE * 10.0..camera_y + GRID_SIZE * 12.0);
     let die_timer = Uniform::from(TIMER_RANGE);
     let translation = Vec3::new(
         die_x.sample(&mut rng),

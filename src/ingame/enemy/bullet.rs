@@ -6,10 +6,12 @@ use bevy::{
 use crate::{
     WINDOW_SIZE,
     AppState,
+    MyCamera,
 };
 use crate::ingame::{
     GRID_SIZE,
     PLAYER_SIZE,
+    CAMERA_SPEED,
     PlayerShip,
     EnemyShip,
     PlayerDamageEvent,
@@ -112,7 +114,7 @@ fn movement(
 ) {
     // println!("enemy.bullet: movement");
     for mut transform in &mut query {
-        transform.translation.y -= SPEED * time_step.delta().as_secs_f32();
+        transform.translation.y -= SPEED * time_step.delta().as_secs_f32() + CAMERA_SPEED;
     }
 }
 
@@ -143,12 +145,18 @@ fn check_for_hit(
 
 fn check_for_offscreen(
     mut commands: Commands,
-    query: Query<(Entity, &Transform), With<Bullet>>,
+    camera_query: Query<&Transform, (With<MyCamera>, Without<Bullet>)>,
+    bullet_query: Query<(Entity, &Transform), (With<Bullet>, Without<MyCamera>)>,
 ) {
-    // println!("enemy.bullet: despawn");
-    for (entity, transform) in &query {
-        if transform.translation.y <= -WINDOW_SIZE.y / 2.0 {
-            commands.entity(entity).despawn();
+    // println!("enemy.bullet: check_for_offscreen");
+    let Ok(camera_transform) = camera_query.get_single() else { return };
+    let camera_y = camera_transform.translation.y;
+
+    for (bullet_entity, bullet_transform) in &bullet_query {
+        let bullet_y = bullet_transform.translation.y;
+        // check off screen
+        if bullet_y <= camera_y - WINDOW_SIZE.y / 2.0 {
+            commands.entity(bullet_entity).despawn();
         }
     }
 }
