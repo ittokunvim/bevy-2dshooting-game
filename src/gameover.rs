@@ -4,6 +4,7 @@ use crate::{
     PATH_FONT,
     AppState,
     Score,
+    MyCamera,
 };
 
 const GAMEOVER_TEXT: &str = "ゲームオーバー";
@@ -23,13 +24,16 @@ struct Gameover;
 fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
+    camera_query: Query<&Transform, With<MyCamera>>,
     score: Res<Score>,
 ) {
     // println!("gameover: setup");
+    let Ok(camera_transform) = camera_query.get_single() else { return };
+    let camera_y = camera_transform.translation.y;
     // game over
     let (x, y, z) = (
         0.0,
-        TEXT_PADDING * 1.5,
+        camera_y + TEXT_PADDING * 1.5,
         0.0,
     );
     commands.spawn((
@@ -46,7 +50,7 @@ fn setup(
     // score
     let (x, y, z) = (
         0.0,
-        TEXT_PADDING * 0.5,
+        camera_y + TEXT_PADDING * 0.5,
         0.0,
     );
     commands.spawn((
@@ -63,7 +67,7 @@ fn setup(
     // retry
     let (x, y, z) = (
         0.0,
-        -TEXT_PADDING * 0.5,
+        camera_y - TEXT_PADDING * 0.5,
         0.0,
     );
     commands.spawn((
@@ -80,7 +84,7 @@ fn setup(
     // back to title
     let (x, y, z) = (
         0.0,
-        -TEXT_PADDING * 1.5,
+        camera_y - TEXT_PADDING * 1.5,
         0.0,
     );
     commands.spawn((
@@ -97,7 +101,7 @@ fn setup(
     // board
     let (x, y, z) = (
         0.0,
-        0.0,
+        camera_y,
         -10.0,
     );
     commands.spawn((
