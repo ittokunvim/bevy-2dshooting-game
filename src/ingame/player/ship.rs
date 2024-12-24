@@ -11,8 +11,8 @@ use crate::ingame::{
     PLAYER_SIZE as SIZE,
     PLAYER_LIFE as LIFE,
     PlayerLife,
-    PlayerShip,
     PlayerDamageEvent,
+    PlayerShip,
 };
 
 const PATH_IMAGE_PLAYER_SHIP: &str = "bevy-2dshooting-game/player-ship.png";
@@ -78,19 +78,21 @@ fn movement(
     }
 
     let Ok(mut ship_transform) = ship_query.get_single_mut() else { return };
+    let ship_xy = ship_transform.translation.xy();
     let Ok(camera_transform) = camera_query.get_single() else { return };
+    let camera_xy = camera_transform.translation.xy();
     // set player x position
-    let new_player_position_x = ship_transform.translation.x
-        + direction.x * SPEED * time_step.delta().as_secs_f32();
+    let new_player_position_x = ship_xy.x
+    + direction.x * SPEED * time_step.delta().as_secs_f32();
     // set player x range movement
-    let left_bound = camera_transform.translation.x - WINDOW_SIZE.x / 2.0 + SIZE.x;
-    let right_bound = camera_transform.translation.x + WINDOW_SIZE.x / 2.0 - SIZE.x;
+    let left_bound = camera_xy.x - WINDOW_SIZE.x / 2.0 + SIZE.x;
+    let right_bound = camera_xy.x + WINDOW_SIZE.x / 2.0 - SIZE.x;
     // set player y position
-    let new_player_position_y = ship_transform.translation.y
-        + direction.y * SPEED * time_step.delta().as_secs_f32();
+    let new_player_position_y = ship_xy.y
+    + direction.y * SPEED * time_step.delta().as_secs_f32();
     // set player y range movement
-    let down_bound = camera_transform.translation.y - WINDOW_SIZE.y / 2.0 + SIZE.y;
-    let up_bound = camera_transform.translation.y + WINDOW_SIZE.y / 2.0 - SIZE.y;
+    let down_bound = camera_xy.y - WINDOW_SIZE.y / 2.0 + SIZE.y;
+    let up_bound = camera_xy.y + WINDOW_SIZE.y / 2.0 - SIZE.y;
     // move player
     ship_transform.translation.x = new_player_position_x.clamp(left_bound, right_bound);
     ship_transform.translation.y = new_player_position_y.clamp(down_bound, up_bound);
@@ -149,14 +151,6 @@ fn reset_life(mut life: ResMut<PlayerLife>) {
     **life = LIFE;
 }
 
-fn despawn(
-    mut commands: Commands,
-    query: Query<Entity, With<PlayerShip>>,
-) {
-    // println!("player.ship: despawn");
-    for entity in &query { commands.entity(entity).despawn() }
-}
-
 pub struct ShipPlugin;
 
 impl Plugin for ShipPlugin {
@@ -170,7 +164,6 @@ impl Plugin for ShipPlugin {
                 // damage_despawn,   // moved ingame/enemy/bullet.rs
             ).run_if(in_state(AppState::Ingame)))
             .add_systems(OnExit(AppState::Gameover), reset_life)
-            .add_systems(OnExit(AppState::Ingame), despawn)
         ;
     }
 }

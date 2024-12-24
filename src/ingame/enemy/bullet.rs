@@ -10,11 +10,11 @@ use crate::{
 };
 use crate::ingame::{
     GRID_SIZE,
-    PLAYER_SIZE,
     CAMERA_SPEED,
+    PLAYER_SIZE,
+    PlayerDamageEvent,
     PlayerShip,
     EnemyShip,
-    PlayerDamageEvent,
 };
 
 const PATH_IMAGE_ENEMY_BULLET: &str = "bevy-2dshooting-game/enemy-bullet.png";
@@ -30,9 +30,6 @@ const SIZE: Vec2 = Vec2::new(8.0, 32.0);
 struct BulletImage(Handle<Image>);
 
 #[derive(Component)]
-struct Bullet;
-
-#[derive(Component)]
 struct AnimationIndices {
     first: usize,
     last: usize,
@@ -40,6 +37,9 @@ struct AnimationIndices {
 
 #[derive(Component, Deref, DerefMut)]
 struct AnimationTimer(Timer);
+
+#[derive(Component)]
+struct Bullet;
 
 fn setup(
     mut commands: Commands,
@@ -99,7 +99,6 @@ fn animation(
         timer.tick(time.delta());
 
         if timer.just_finished() {
-            // animation
             if let Some(atlas) = &mut sprite.texture_atlas {
                 atlas.index = if atlas.index == indices.last 
                     { indices.first } else { atlas.index + 1 }
@@ -114,7 +113,8 @@ fn movement(
 ) {
     // println!("enemy.bullet: movement");
     for mut transform in &mut query {
-        transform.translation.y -= SPEED * time_step.delta().as_secs_f32() + CAMERA_SPEED;
+        transform.translation.y -= SPEED * time_step.delta().as_secs_f32();
+        transform.translation.y += CAMERA_SPEED;
     }
 }
 

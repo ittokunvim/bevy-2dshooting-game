@@ -6,13 +6,19 @@ mod camera;
 mod scoreboard;
 
 const GRID_SIZE: f32 = 16.0;
+const CAMERA_SPEED: f32 = 0.2;
 const PLAYER_SIZE: Vec2 = Vec2::splat(32.0);
 const PLAYER_LIFE: usize = 8;
 const ENEMY_SIZE: Vec2 = Vec2::splat(32.0);
-const CAMERA_SPEED: f32 = 0.2;
 
 #[derive(Resource, Deref, DerefMut)]
 struct PlayerLife(usize);
+
+#[derive(Event, Default)]
+struct PlayerDamageEvent;
+
+#[derive(Event)]
+struct EnemyDamageEvent(Entity, Vec2);
 
 #[derive(Component)]
 struct PlayerShip;
@@ -21,12 +27,6 @@ struct PlayerShip;
 struct EnemyShip {
     shoot_timer: Timer,
 }
-
-#[derive(Event, Default)]
-struct PlayerDamageEvent;
-
-#[derive(Event)]
-struct EnemyDamageEvent(Entity, Vec2);
 
 pub struct IngamePlugin;
 

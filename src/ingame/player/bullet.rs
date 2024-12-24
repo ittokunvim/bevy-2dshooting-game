@@ -10,11 +10,11 @@ use crate::{
 };
 use crate::ingame::{
     GRID_SIZE,
-    ENEMY_SIZE,
     CAMERA_SPEED,
+    ENEMY_SIZE,
+    EnemyDamageEvent,
     PlayerShip,
     EnemyShip,
-    EnemyDamageEvent,
 };
 use crate::ingame::player::ShootEvent;
 
@@ -35,9 +35,6 @@ struct BulletImage(Handle<Image>);
 struct Remaining(usize);
 
 #[derive(Component)]
-struct Bullet;
-
-#[derive(Component)]
 struct AnimationIndices {
     first: usize,
     last: usize,
@@ -45,6 +42,9 @@ struct AnimationIndices {
 
 #[derive(Component, Deref, DerefMut)]
 struct AnimationTimer(Timer);
+
+#[derive(Component)]
+struct Bullet;
 
 fn setup(
     mut commands: Commands,
@@ -111,7 +111,7 @@ fn animation(
     // println!("player.bullet: animation");
     for (indices, mut timer, mut sprite) in &mut query {
         timer.tick(time.delta());
-        // animation
+
         if timer.just_finished() {
             if let Some(atlas) = &mut sprite.texture_atlas {
                 atlas.index = if atlas.index == indices.last 

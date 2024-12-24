@@ -11,8 +11,8 @@ use crate::{
 use crate::ingame::{
     GRID_SIZE,
     ENEMY_SIZE as SIZE,
-    EnemyShip,
     EnemyDamageEvent,
+    EnemyShip,
 };
 use crate::ingame::enemy::ShipDespawnEvent;
 
@@ -130,10 +130,6 @@ pub fn damage(
     }
 }
 
-fn reset_score(mut score: ResMut<Score>) {
-    **score = 0;
-}
-
 fn reset_count(mut count: ResMut<ShipCount>) {
     **count = 0;
 }
@@ -159,7 +155,6 @@ impl Plugin for ShipPlugin {
                 change_direction,
                 // damage, // moved ingame/player/bullet.rs
             ).run_if(in_state(AppState::Ingame)))
-            .add_systems(OnExit(AppState::Gameover), reset_score)
             .add_systems(OnExit(AppState::Ingame), (
                 reset_count,
                 despawn,
