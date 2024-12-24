@@ -6,13 +6,15 @@ use bevy::{
 use crate::{
     WINDOW_SIZE,
     AppState,
+    MyCamera,
 };
 use crate::ingame::{
     GRID_SIZE,
+    CAMERA_SPEED,
     PLAYER_SIZE,
+    PlayerDamageEvent,
     PlayerShip,
     EnemyShip,
-    PlayerDamageEvent,
 };
 
 const PATH_IMAGE_ENEMY_BULLET: &str = "bevy-2dshooting-game/enemy-bullet.png";
@@ -28,9 +30,6 @@ const SIZE: Vec2 = Vec2::new(8.0, 32.0);
 struct BulletImage(Handle<Image>);
 
 #[derive(Component)]
-struct Bullet;
-
-#[derive(Component)]
 struct AnimationIndices {
     first: usize,
     last: usize,
@@ -38,6 +37,9 @@ struct AnimationIndices {
 
 #[derive(Component, Deref, DerefMut)]
 struct AnimationTimer(Timer);
+
+#[derive(Component)]
+struct Bullet;
 
 fn setup(
     mut commands: Commands,
@@ -97,7 +99,6 @@ fn animation(
         timer.tick(time.delta());
 
         if timer.just_finished() {
-            // animation
             if let Some(atlas) = &mut sprite.texture_atlas {
                 atlas.index = if atlas.index == indices.last 
                     { indices.first } else { atlas.index + 1 }
@@ -113,6 +114,7 @@ fn movement(
     // println!("enemy.bullet: movement");
     for mut transform in &mut query {
         transform.translation.y -= SPEED * time_step.delta().as_secs_f32();
+        transform.translation.y += CAMERA_SPEED;
     }
 }
 
@@ -143,12 +145,18 @@ fn check_for_hit(
 
 fn check_for_offscreen(
     mut commands: Commands,
-    query: Query<(Entity, &Transform), With<Bullet>>,
+    camera_query: Query<&Transform, (With<MyCamera>, Without<Bullet>)>,
+    bullet_query: Query<(Entity, &Transform), (With<Bullet>, Without<MyCamera>)>,
 ) {
-    // println!("enemy.bullet: despawn");
-    for (entity, transform) in &query {
-        if transform.translation.y <= -WINDOW_SIZE.y / 2.0 {
-            commands.entity(entity).despawn();
+    // println!("enemy.bullet: check_for_offscreen");
+    let Ok(camera_transform) = camera_query.get_single() else { return };
+    let camera_y = camera_transform.translation.y;
+
+    for (bullet_entity, bullet_transform) in &bullet_query {
+        let bullet_y = bullet_transform.translation.y;
+        // check off screen
+        if bullet_y <= camera_y - WINDOW_SIZE.y / 2.0 {
+            commands.entity(bullet_entity).despawn();
         }
     }
 }

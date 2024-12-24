@@ -3,12 +3,11 @@ use bevy::prelude::*;
 use crate::AppState;
 use crate::ingame::enemy::ShipDespawnEvent;
 
+const PATH_IMAGE_ENEMY_DESPAWN: &str = "bevy-2dshooting-game/enemy-despawn.png";
 const IMAGE_SIZE: UVec2 = UVec2::splat(64);
 const COLUMN: u32 = 9;
 const ROW: u32 = 1;
 const FPS: f32 = 0.1;
-
-const PATH_IMAGE_ENEMY_DESPAWN: &str = "bevy-2dshooting-game/enemy-despawn.png";
 
 #[derive(Resource, Deref)]
 struct DespawnImage(Handle<Image>);
@@ -31,7 +30,7 @@ fn setup(
     commands.insert_resource(DespawnImage(handle));
 }
 
-fn spawn_despawn(
+fn spawn(
     mut commands: Commands,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
     mut events: EventReader<ShipDespawnEvent>,
@@ -91,7 +90,7 @@ impl Plugin for DespawnPlugin {
         app
             .add_systems(OnEnter(AppState::Ingame), setup)
             .add_systems(Update, (
-                spawn_despawn,
+                spawn,
                 animation,
             ).run_if(in_state(AppState::Ingame)))
         ;

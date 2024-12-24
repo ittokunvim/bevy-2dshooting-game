@@ -19,6 +19,9 @@ enum AppState {
 #[derive(Resource, Deref, DerefMut)]
 struct Score(usize);
 
+#[derive(Component)]
+struct MyCamera;
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins
@@ -47,5 +50,5 @@ fn setup(
     mut commands: Commands,
 ) {
     // println!("main: setup");
-    commands.spawn(Camera2d::default());
+    commands.spawn((Camera2d::default(), MyCamera));
 }

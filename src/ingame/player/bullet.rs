@@ -6,13 +6,15 @@ use bevy::{
 use crate::{
     WINDOW_SIZE,
     AppState,
+    MyCamera,
 };
 use crate::ingame::{
     GRID_SIZE,
+    CAMERA_SPEED,
     ENEMY_SIZE,
+    EnemyDamageEvent,
     PlayerShip,
     EnemyShip,
-    EnemyDamageEvent,
 };
 use crate::ingame::player::ShootEvent;
 
@@ -33,9 +35,6 @@ struct BulletImage(Handle<Image>);
 struct Remaining(usize);
 
 #[derive(Component)]
-struct Bullet;
-
-#[derive(Component)]
 struct AnimationIndices {
     first: usize,
     last: usize,
@@ -43,6 +42,9 @@ struct AnimationIndices {
 
 #[derive(Component, Deref, DerefMut)]
 struct AnimationTimer(Timer);
+
+#[derive(Component)]
+struct Bullet;
 
 fn setup(
     mut commands: Commands,
@@ -109,7 +111,7 @@ fn animation(
     // println!("player.bullet: animation");
     for (indices, mut timer, mut sprite) in &mut query {
         timer.tick(time.delta());
-        // animation
+
         if timer.just_finished() {
             if let Some(atlas) = &mut sprite.texture_atlas {
                 atlas.index = if atlas.index == indices.last 
@@ -126,6 +128,7 @@ fn movement(
     // println!("player.bullet: movement");
     for mut transform in &mut query {
         transform.translation.y += SPEED * time_step.delta().as_secs_f32();
+        transform.translation.y += CAMERA_SPEED;
     }
 }
 
@@ -165,15 +168,21 @@ fn check_for_hit(
 fn check_for_offscreen(
     mut commands: Commands,
     mut remaining: ResMut<Remaining>,
-    query: Query<(Entity, &Transform), With<Bullet>>,
+    camera_query: Query<&Transform, (With<MyCamera>, Without<Bullet>)>,
+    bullet_query: Query<(Entity, &Transform), (With<Bullet>, Without<MyCamera>)>,
 ) {
     // println!("player.bullet: check_for_offscreen");
-    for (entity, transform) in  &query {
-        if transform.translation.y >= WINDOW_SIZE.y / 2.0 {
+    let Ok(camera_transform) = camera_query.get_single() else { return };
+    let camera_y = camera_transform.translation.y;
+
+    for (bullet_entity, bullet_transform) in  &bullet_query {
+        let bullet_y = bullet_transform.translation.y;
+        // check off screen
+        if bullet_y >= camera_y + WINDOW_SIZE.y / 2.0 {
             // reduce remaining bullet
             **remaining += 1;
             // despawn player bullet
-            commands.entity(entity).despawn();
+            commands.entity(bullet_entity).despawn();
         }
     }
 }

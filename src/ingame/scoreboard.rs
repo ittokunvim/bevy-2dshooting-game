@@ -114,6 +114,10 @@ fn update_life(
     **span = life.to_string();
 }
 
+fn reset_score(mut score: ResMut<Score>) {
+    **score = 0;
+}
+
 fn despawn(
     mut commands: Commands,
     query: Query<Entity, With<ScoreboardUi>>,
@@ -133,6 +137,7 @@ impl Plugin for ScoreboardPlugin {
                 update_life,
             ).run_if(in_state(AppState::Ingame)))
             .add_systems(OnExit(AppState::Ingame), despawn)
+            .add_systems(OnExit(AppState::Gameover), reset_score)
         ;
     }
 }
