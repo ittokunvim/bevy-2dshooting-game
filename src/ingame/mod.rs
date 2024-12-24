@@ -9,6 +9,7 @@ const GRID_SIZE: f32 = 16.0;
 const PLAYER_SIZE: Vec2 = Vec2::splat(32.0);
 const PLAYER_LIFE: usize = 8;
 const ENEMY_SIZE: Vec2 = Vec2::splat(32.0);
+const CAMERA_SPEED: f32 = 0.2;
 
 #[derive(Resource, Deref, DerefMut)]
 struct PlayerLife(usize);

@@ -3,9 +3,11 @@ use bevy::prelude::*;
 use crate::{
     WINDOW_SIZE,
     AppState,
+    MyCamera,
 };
 use crate::ingame::{
     GRID_SIZE,
+    CAMERA_SPEED,
     PLAYER_SIZE as SIZE,
     PLAYER_LIFE as LIFE,
     PlayerLife,
@@ -57,7 +59,8 @@ fn setup(
 }
 
 fn movement(
-    mut query: Query<&mut Transform, With<PlayerShip>>,
+    mut ship_query: Query<&mut Transform, (With<PlayerShip>, Without<MyCamera>)>,
+    camera_query: Query<&Transform, (With<MyCamera>, Without<PlayerShip>)>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
     time_step: Res<Time<Fixed>>,
 ) {
@@ -74,22 +77,24 @@ fn movement(
         }
     }
 
-    let Ok(mut transform) = query.get_single_mut() else { return };
+    let Ok(mut ship_transform) = ship_query.get_single_mut() else { return };
+    let Ok(camera_transform) = camera_query.get_single() else { return };
     // set player x position
-    let new_player_position_x = transform.translation.x
+    let new_player_position_x = ship_transform.translation.x
         + direction.x * SPEED * time_step.delta().as_secs_f32();
     // set player x range movement
-    let left_bound = -WINDOW_SIZE.x / 2.0 + SIZE.x / 2.0;
-    let right_bound = WINDOW_SIZE.x / 2.0 - SIZE.x / 2.0;
+    let left_bound = camera_transform.translation.x - WINDOW_SIZE.x / 2.0 + SIZE.x;
+    let right_bound = camera_transform.translation.x + WINDOW_SIZE.x / 2.0 - SIZE.x;
     // set player y position
-    let new_player_position_y = transform.translation.y
+    let new_player_position_y = ship_transform.translation.y
         + direction.y * SPEED * time_step.delta().as_secs_f32();
     // set player y range movement
-    let up_bound = -WINDOW_SIZE.y / 2.0 + SIZE.y / 2.0;
-    let down_bound = WINDOW_SIZE.y / 2.0 - SIZE.y / 2.0;
+    let down_bound = camera_transform.translation.y - WINDOW_SIZE.y / 2.0 + SIZE.y;
+    let up_bound = camera_transform.translation.y + WINDOW_SIZE.y / 2.0 - SIZE.y;
     // move player
-    transform.translation.x = new_player_position_x.clamp(left_bound, right_bound);
-    transform.translation.y = new_player_position_y.clamp(up_bound, down_bound);
+    ship_transform.translation.x = new_player_position_x.clamp(left_bound, right_bound);
+    ship_transform.translation.y = new_player_position_y.clamp(down_bound, up_bound);
+    ship_transform.translation.y += CAMERA_SPEED;
 }
 
 pub fn damage_life(
