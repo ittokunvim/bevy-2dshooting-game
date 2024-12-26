@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     WINDOW_SIZE,
+    AppState,
     MyCamera,
 };
 
@@ -100,6 +101,18 @@ fn check_offscreen(
     }
 }
 
+fn reset_position(
+    mut query: Query<&mut Transform, With<Mybackground>>
+) {
+    // println!("background: reset_position");
+    let mut i = 0;
+
+    for mut transform in &mut query {
+        transform.translation.y = WINDOW_SIZE.y * i as f32;
+        i += 1;
+    }
+}
+
 pub struct BackgroundPlugin;
 
 impl Plugin for BackgroundPlugin {
@@ -111,6 +124,7 @@ impl Plugin for BackgroundPlugin {
                 animation,
                 check_offscreen,
             ))
+            .add_systems(OnExit(AppState::Gameover), reset_position)
         ;
     }
 }
