@@ -216,7 +216,7 @@ impl Plugin for BulletPlugin {
             ).run_if(in_state(AppState::Ingame)))
             .add_systems(Update, (
                 check_for_hit,
-                crate::ingame::enemy::ship::damage,
+                crate::ingame::enemies::fighter::ship::damage,
             ).chain().run_if(in_state(AppState::Ingame)))
             .add_systems(OnExit(AppState::Ingame), (
                 reset_remaining,

@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::AppState;
-use crate::ingame::enemy::ShipDespawnEvent;
+use crate::ingame::enemies::fighter::ShipDespawnEvent;
 
 const PATH_SOUND_DESPAWN: &str = "sounds/battle-blow-3.ogg";
 

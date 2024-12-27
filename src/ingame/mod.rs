@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-mod enemy;
+mod enemies;
 mod player;
 mod camera;
 mod scoreboard;
@@ -36,7 +36,7 @@ impl Plugin for IngamePlugin {
             .insert_resource(PlayerLife(PLAYER_LIFE))
             .add_event::<PlayerDamageEvent>()
             .add_event::<EnemyDamageEvent>()
-            .add_plugins(enemy::EnemyPlugin)
+            .add_plugins(enemies::EnemiesPlugin)
             .add_plugins(player::PlayerPlugin)
             .add_plugins(camera::CameraPlugin)
             .add_plugins(scoreboard::ScoreboardPlugin)
