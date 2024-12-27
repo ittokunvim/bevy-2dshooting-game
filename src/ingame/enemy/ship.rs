@@ -16,7 +16,7 @@ use crate::ingame::{
 };
 use crate::ingame::enemy::ShipDespawnEvent;
 
-const PATH_IMAGE_ENEMY_SHIP: &str = "bevy-2dshooting-game/enemy-ship.png";
+const PATH_IMAGE_ENEMY_SHIP: &str = "bevy-2dshooting-game/fighter-ship.png";
 const DEGREES: f32 = 180.0;
 const SCALE: Vec3 = Vec3::splat(1.0);
 const DIRECTION: Vec2 = Vec2::new(1.0, 0.0);
