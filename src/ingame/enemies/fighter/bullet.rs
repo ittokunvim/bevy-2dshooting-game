@@ -14,7 +14,7 @@ use crate::ingame::{
     PLAYER_SIZE,
     PlayerDamageEvent,
     PlayerShip,
-    EnemyShip,
+    FighterShip,
 };
 
 const PATH_IMAGE_ENEMY_BULLET: &str = "bevy-2dshooting-game/enemy-bullet.png";
@@ -53,12 +53,12 @@ fn setup(
 fn shoot(
     mut commands: Commands,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
-    mut enemy_query: Query<(&mut EnemyShip, &Transform), With<EnemyShip>>,
+    mut fighter_query: Query<(&mut FighterShip, &Transform), With<FighterShip>>,
     bullet_image: Res<BulletImage>,
     time: Res<Time>,
 ) {
     // println!("enemy.bullet: shoot");
-    for (mut enemy, enemy_transform) in &mut enemy_query {
+    for (mut enemy, enemy_transform) in &mut fighter_query {
         if !enemy.shoot_timer.tick(time.delta()).just_finished() { continue }
 
         let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);

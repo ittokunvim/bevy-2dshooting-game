@@ -9,7 +9,8 @@ const GRID_SIZE: f32 = 16.0;
 const CAMERA_SPEED: f32 = 0.2;
 const PLAYER_SIZE: Vec2 = Vec2::splat(32.0);
 const PLAYER_LIFE: usize = 8;
-const ENEMY_SIZE: Vec2 = Vec2::splat(32.0);
+const FIGHTER_SIZE: Vec2 = Vec2::splat(32.0);
+const TORPEDO_SIZE: Vec2 = Vec2::splat(32.0);
 
 #[derive(Resource, Deref, DerefMut)]
 struct PlayerLife(usize);
@@ -18,14 +19,22 @@ struct PlayerLife(usize);
 struct PlayerDamageEvent;
 
 #[derive(Event)]
-struct EnemyDamageEvent(Entity, Vec2);
+struct FighterDamageEvent(Entity, Vec2);
+
+#[derive(Event)]
+struct TorpedoDamageEvent(Entity, Vec2);
 
 #[derive(Component)]
 struct PlayerShip;
 
 #[derive(Component)]
-struct EnemyShip {
+struct FighterShip {
     shoot_timer: Timer,
+}
+
+#[derive(Component)]
+struct TorpedoShip {
+    _shoot_timer: Timer,
 }
 
 pub struct IngamePlugin;
@@ -35,7 +44,8 @@ impl Plugin for IngamePlugin {
         app
             .insert_resource(PlayerLife(PLAYER_LIFE))
             .add_event::<PlayerDamageEvent>()
-            .add_event::<EnemyDamageEvent>()
+            .add_event::<FighterDamageEvent>()
+            .add_event::<TorpedoDamageEvent>()
             .add_plugins(enemies::EnemiesPlugin)
             .add_plugins(player::PlayerPlugin)
             .add_plugins(camera::CameraPlugin)
