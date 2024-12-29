@@ -11,10 +11,13 @@ use crate::{
 use crate::ingame::{
     GRID_SIZE,
     CAMERA_SPEED,
-    ENEMY_SIZE,
-    EnemyDamageEvent,
+    FIGHTER_SIZE,
+    TORPEDO_SIZE,
+    FighterDamageEvent,
+    TorpedoDamageEvent,
     PlayerShip,
-    EnemyShip,
+    FighterShip,
+    TorpedoShip,
 };
 use crate::ingame::player::ShootEvent;
 
@@ -132,28 +135,61 @@ fn movement(
     }
 }
 
-fn check_for_hit(
+fn check_for_hit_fighter(
     mut commands: Commands,
-    mut events: EventWriter<EnemyDamageEvent>,
+    mut events: EventWriter<FighterDamageEvent>,
     mut remaining: ResMut<Remaining>,
-    bullet_query: Query<(Entity, &Transform), (With<Bullet>, Without<EnemyShip>)>,
-    enemy_query: Query<(Entity, &Transform), (With<EnemyShip>, Without<Bullet>)>,
+    bullet_query: Query<(Entity, &Transform), (With<Bullet>, Without<FighterShip>)>,
+    fighter_query: Query<(Entity, &Transform), (With<FighterShip>, Without<Bullet>)>,
 ) {
-    // println!("player.bullet: check_for_hit");
+    // println!("player.bullet: check_for_hit_fighter");
     for (bullet_entity, bullet_transform) in &bullet_query {
         let bullet_pos = bullet_transform.translation.xy();
         let mut is_hit_bullet = false;
 
-        for (enemy_entity, enemy_transform) in &enemy_query {
-            let enemy_pos = enemy_transform.translation.xy();
+        for (fighter_entity, fighter_transform) in &fighter_query {
+            let fighter_pos = fighter_transform.translation.xy();
             let collision = Aabb2d::new(bullet_pos, SIZE / 2.0)
-                .intersects(&Aabb2d::new(enemy_pos, ENEMY_SIZE / 2.0));
+                .intersects(&Aabb2d::new(fighter_pos, FIGHTER_SIZE / 2.0));
 
             if collision {
                 // flag a player bullet hit
                 is_hit_bullet = true;
-                // damage enemy
-                events.send(EnemyDamageEvent(enemy_entity, enemy_pos));
+                // damage fighter
+                events.send(FighterDamageEvent(fighter_entity, fighter_pos));
+            }
+        }
+        if is_hit_bullet {
+            // reduce remaining bullet
+            **remaining += 1;
+            // despawn player bullet
+            commands.entity(bullet_entity).despawn();
+        }
+    }
+}
+
+fn check_for_hit_torpedo(
+    mut commands: Commands,
+    mut events: EventWriter<TorpedoDamageEvent>,
+    mut remaining: ResMut<Remaining>,
+    bullet_query: Query<(Entity, &Transform), (With<Bullet>, Without<FighterShip>)>,
+    torpedo_query: Query<(Entity, &Transform), (With<TorpedoShip>, Without<Bullet>)>,
+) {
+    // println!("player.bullet: check_for_hit_torpedo");
+    for (bullet_entity, bullet_transform) in &bullet_query {
+        let bullet_pos = bullet_transform.translation.xy();
+        let mut is_hit_bullet = false;
+
+        for (torpedo_entity, torpedo_transform) in &torpedo_query {
+            let torpedo_pos = torpedo_transform.translation.xy();
+            let collision = Aabb2d::new(bullet_pos, SIZE / 2.0)
+                .intersects(&Aabb2d::new(torpedo_pos, TORPEDO_SIZE / 2.0));
+
+            if collision {
+                // flag a player bullet hit
+                is_hit_bullet = true;
+                // damage torpedo
+                events.send(TorpedoDamageEvent(torpedo_entity, torpedo_pos));
             }
         }
         if is_hit_bullet {
@@ -215,8 +251,12 @@ impl Plugin for BulletPlugin {
                 check_for_offscreen,
             ).run_if(in_state(AppState::Ingame)))
             .add_systems(Update, (
-                check_for_hit,
-                crate::ingame::enemy::ship::damage,
+                check_for_hit_fighter,
+                crate::ingame::enemies::fighter::ship::damage,
+            ).chain().run_if(in_state(AppState::Ingame)))
+            .add_systems(Update, (
+                check_for_hit_torpedo,
+                crate::ingame::enemies::torpedo::ship::damage,
             ).chain().run_if(in_state(AppState::Ingame)))
             .add_systems(OnExit(AppState::Ingame), (
                 reset_remaining,

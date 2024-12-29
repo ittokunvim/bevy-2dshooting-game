@@ -8,9 +8,9 @@ mod despawn;
 #[derive(Event)]
 pub struct ShipDespawnEvent(Vec2);
 
-pub struct EnemyPlugin;
+pub struct FighterPlugin;
 
-impl Plugin for EnemyPlugin {
+impl Plugin for FighterPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_event::<ShipDespawnEvent>()

@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::AppState;
-use crate::ingame::enemy::ShipDespawnEvent;
+use crate::ingame::enemies::fighter::ShipDespawnEvent;
 
 const PATH_IMAGE_ENEMY_DESPAWN: &str = "bevy-2dshooting-game/enemy-despawn.png";
 const IMAGE_SIZE: UVec2 = UVec2::splat(64);

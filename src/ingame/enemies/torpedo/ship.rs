@@ -10,19 +10,18 @@ use crate::{
 };
 use crate::ingame::{
     GRID_SIZE,
-    ENEMY_SIZE as SIZE,
-    EnemyDamageEvent,
-    EnemyShip,
+    TORPEDO_SIZE as SIZE,
+    TorpedoDamageEvent,
+    TorpedoShip,
 };
-use crate::ingame::enemy::ShipDespawnEvent;
 
-const PATH_IMAGE_ENEMY_SHIP: &str = "bevy-2dshooting-game/enemy-ship.png";
+const PATH_IMAGE: &str = "bevy-2dshooting-game/torpedo-ship.png";
 const DEGREES: f32 = 180.0;
 const SCALE: Vec3 = Vec3::splat(1.0);
 const DIRECTION: Vec2 = Vec2::new(1.0, 0.0);
-const SPEED: f32 = 256.0;
-const MAX_COUNT: usize = 4;
-const TIMER_RANGE: Range<f32> = 0.4..0.6;
+const SPEED: f32 = 128.0;
+const MAX_COUNT: usize = 1;
+const TIMER_RANGE: Range<f32> = 1.4..1.6;
 
 #[derive(Resource, Deref)]
 struct ShipImage(Handle<Image>);
@@ -37,8 +36,7 @@ fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
-    // println!("enemy.ship: setup");
-    let handle: Handle<Image> = asset_server.load(PATH_IMAGE_ENEMY_SHIP);
+    let handle: Handle<Image> = asset_server.load(PATH_IMAGE);
     commands.insert_resource(ShipImage(handle));
 }
 
@@ -46,20 +44,21 @@ fn spawn(
     mut commands: Commands,
     mut count: ResMut<ShipCount>,
     image: Res<ShipImage>,
+    score: Res<Score>,
     query: Query<&Transform, With<MyCamera>>,
 ) {
-    // println!("enemy.ship: spawn");
+    // println!("torpedo.ship: spawn");
+    if **score == 0 || **score % 10 != 0 { return }
     if **count >= MAX_COUNT { return }
 
     let mut rng = rand::thread_rng();
     let Ok(camera_transform) = query.get_single() else { return };
     let camera_y = camera_transform.translation.y;
     let die_x = Uniform::from(-GRID_SIZE * 18.0..GRID_SIZE * 18.0);
-    let die_y = Uniform::from(camera_y + GRID_SIZE * 10.0..camera_y + GRID_SIZE * 12.0);
     let die_timer = Uniform::from(TIMER_RANGE);
     let translation = Vec3::new(
         die_x.sample(&mut rng),
-        die_y.sample(&mut rng),
+        camera_y + GRID_SIZE * 13.0,
         10.0,
     );
     let (duration, mode) = (
@@ -75,17 +74,17 @@ fn spawn(
             rotation: Quat::from_rotation_z(DEGREES.to_radians()),
             scale: SCALE,
         },
-        EnemyShip { shoot_timer: Timer::from_seconds(duration, mode) },
+        TorpedoShip { _shoot_timer: Timer::from_seconds(duration, mode) },
         Velocity(direction * SPEED),
     ));
     **count += 1;
 }
 
 fn apply_velocity(
-    mut query: Query<(&mut Transform, &Velocity), With<EnemyShip>>,
+    mut query: Query<(&mut Transform, &Velocity), With<TorpedoShip>>,
     time_step: Res<Time<Fixed>>,
 ) {
-    // println!("enemy.ship: apply_velocity");
+    // println!("torpedo.ship: apply_velocity");
     for (mut transform, velocity) in &mut query {
         // movement
         transform.translation.x += velocity.x * time_step.delta().as_secs_f32();
@@ -94,9 +93,9 @@ fn apply_velocity(
 }
 
 fn change_direction(
-    mut query: Query<(&mut Velocity, &Transform), With<EnemyShip>>,
+    mut query: Query<(&mut Velocity, &Transform), With<TorpedoShip>>,
 ) {
-    // println!("enemy.ship: change_direction");
+    // println!("torpedo.ship: change_direction");
     for (mut velocity, transform) in &mut query {
         let left_window_collision =
         WINDOW_SIZE.x / 2.0 < transform.translation.x + SIZE.x / 4.0;
@@ -111,17 +110,14 @@ fn change_direction(
 
 pub fn damage(
     mut commands: Commands,
-    mut enemy_damage_events: EventReader<EnemyDamageEvent>,
-    mut ship_despawn_events: EventWriter<ShipDespawnEvent>,
+    mut torpedo_damage_events: EventReader<TorpedoDamageEvent>,
     mut count: ResMut<ShipCount>,
     mut score: ResMut<Score>,
 ) {
-    // println!("enemy.ship: damage");
-    for damage in enemy_damage_events.read() {
-        let (entity, vec2) = (damage.0, damage.1);
-        // send despawn event
-        ship_despawn_events.send(ShipDespawnEvent(vec2));
-        // decrement enemy count
+    // println!("torpedo.ship: damage");
+    for damage in torpedo_damage_events.read() {
+        let (entity, _vec2) = (damage.0, damage.1);
+        // decrement torpedo count
         **count -= 1;
         // increment score
         **score += 1;
@@ -131,14 +127,15 @@ pub fn damage(
 }
 
 fn reset_count(mut count: ResMut<ShipCount>) {
+    // println!("torpedo.ship: reset_count");
     **count = 0;
 }
 
 fn despawn(
     mut commands: Commands,
-    query: Query<Entity, With<EnemyShip>>,
+    query: Query<Entity, With<TorpedoShip>>,
 ) {
-    // println!("enemy.ship: despawn");
+    // println!("torpedo.ship: despawn");
     for entity in &query { commands.entity(entity).despawn() }
 }
 
