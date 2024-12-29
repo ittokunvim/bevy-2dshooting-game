@@ -17,7 +17,7 @@ use crate::ingame::{
     FighterShip,
 };
 
-const PATH_IMAGE_ENEMY_BULLET: &str = "bevy-2dshooting-game/enemy-bullet.png";
+const PATH_IMAGE_ENEMY_BULLET: &str = "bevy-2dshooting-game/fighter-bullet.png";
 const IMAGE_SIZE: UVec2 = UVec2::new(4, 16);
 const COLUMN: u32 = 4;
 const ROW: u32 = 1;
