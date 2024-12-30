@@ -16,6 +16,7 @@ use crate::ingame::{
     PlayerShip,
     FighterShip,
 };
+use crate::ingame::enemies::bullet;
 
 const PATH_IMAGE: &str = "bevy-2dshooting-game/fighter-bullet.png";
 const IMAGE_SIZE: UVec2 = UVec2::new(4, 16);
@@ -29,15 +30,6 @@ const SIZE: Vec2 = Vec2::new(8.0, 32.0);
 
 #[derive(Resource, Deref)]
 struct BulletImage(Handle<Image>);
-
-#[derive(Component)]
-struct AnimationIndices {
-    first: usize,
-    last: usize,
-}
-
-#[derive(Component, Deref, DerefMut)]
-struct AnimationTimer(Timer);
 
 #[derive(Component)]
 pub struct Bullet;
@@ -64,7 +56,7 @@ fn shoot(
 
         let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);
         let texture_atlas_layout = texture_atlas_layouts.add(layout);
-        let animation_indices = AnimationIndices { first: 0, last: 3, };
+        let animation_config = bullet::AnimationConfig::new(0, 3, FPS);
         let translation = Vec3::new(
             fighter_transform.translation.x, 
             fighter_transform.translation.y - GRID_SIZE * 2.0, 
@@ -76,7 +68,7 @@ fn shoot(
                 bullet_image.clone(),
                 TextureAtlas {
                     layout: texture_atlas_layout,
-                    index: animation_indices.first,
+                    index: animation_config.first_sprite_index,
                 },
             ),
             Transform {
@@ -84,27 +76,9 @@ fn shoot(
                 rotation: Quat::from_rotation_z(DEGREES.to_radians()),
                 scale: SCALE,
             },
-            animation_indices,
-            AnimationTimer(Timer::from_seconds(FPS, TimerMode::Repeating)),
+            animation_config,
             Bullet,
         ));
-    }
-}
-
-fn animation(
-    mut query: Query<(&AnimationIndices, &mut AnimationTimer, &mut Sprite), With<Bullet>>,
-    time: Res<Time>,
-) {
-    // println!("enemy.bullet: animation");
-    for (indices, mut timer, mut sprite) in &mut query {
-        timer.tick(time.delta());
-
-        if timer.just_finished() {
-            if let Some(atlas) = &mut sprite.texture_atlas {
-                atlas.index = if atlas.index == indices.last 
-                    { indices.first } else { atlas.index + 1 }
-            }
-        }
     }
 }
 
@@ -178,7 +152,7 @@ impl Plugin for BulletPlugin {
             .add_systems(OnEnter(AppState::Ingame), setup)
             .add_systems(Update, (
                 shoot,
-                animation,
+                bullet::animation,
                 movement,
                 // check_for_hit, // moved ingame/enemies/mod.rs
                 check_for_offscreen,
