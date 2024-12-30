@@ -10,22 +10,20 @@ use crate::{
 };
 use crate::ingame::{
     GRID_SIZE,
-    CAMERA_SPEED,
     PLAYER_SIZE,
     PlayerDamageEvent,
     PlayerShip,
-    FighterShip,
+    TorpedoShip,
 };
 
-const PATH_IMAGE: &str = "bevy-2dshooting-game/fighter-bullet.png";
-const IMAGE_SIZE: UVec2 = UVec2::new(4, 16);
-const COLUMN: u32 = 4;
+const PATH_IMAGE: &str = "bevy-2dshooting-game/torpedo-bullet.png";
+const IMAGE_SIZE: UVec2 = UVec2::new(11, 32);
+const COLUMN: u32 = 3;
 const ROW: u32 = 1;
-const DEGREES: f32 = 180.0;
-const SCALE: Vec3 = Vec3::splat(2.0);
+const SCALE: Vec3 = Vec3::splat(1.5);
 const SPEED: f32 = 256.0;
 const FPS: f32 = 0.1;
-const SIZE: Vec2 = Vec2::new(8.0, 32.0);
+const SIZE: Vec2 = Vec2::new(16.5, 48.0);
 
 #[derive(Resource, Deref)]
 struct BulletImage(Handle<Image>);
@@ -42,11 +40,14 @@ struct AnimationTimer(Timer);
 #[derive(Component)]
 pub struct Bullet;
 
+#[derive(Component, Deref, DerefMut)]
+struct Velocity(Vec2);
+
 fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
-    // println!("fighter.bullet: setup");
+    // println!("torpedo.bullet: setup");
     let handle: Handle<Image> = asset_server.load(PATH_IMAGE);
     commands.insert_resource(BulletImage(handle));
 }
@@ -54,22 +55,28 @@ fn setup(
 fn shoot(
     mut commands: Commands,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
-    mut fighter_query: Query<(&mut FighterShip, &Transform), With<FighterShip>>,
+    mut fighter_query: Query<(&mut TorpedoShip, &Transform), (With<TorpedoShip>, Without<PlayerShip>)>,
+    player_query: Query<&Transform, (With<PlayerShip>, Without<TorpedoShip>)>,
     bullet_image: Res<BulletImage>,
     time: Res<Time>,
 ) {
-    // println!("fighter.bullet: shoot");
-    for (mut fighter, fighter_transform) in &mut fighter_query {
-        if !fighter.shoot_timer.tick(time.delta()).just_finished() { continue }
+    let Ok(player_transform) = player_query.get_single() else { return };
+
+    // println!("torpedo.bullet: shoot");
+    for (mut torpedo, torpedo_transform) in &mut fighter_query {
+        if !torpedo.shoot_timer.tick(time.delta()).just_finished() { continue }
 
         let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);
         let texture_atlas_layout = texture_atlas_layouts.add(layout);
-        let animation_indices = AnimationIndices { first: 0, last: 3, };
+        let animation_indices = AnimationIndices { first: 0, last: 2, };
         let translation = Vec3::new(
-            fighter_transform.translation.x, 
-            fighter_transform.translation.y - GRID_SIZE * 2.0, 
+            torpedo_transform.translation.x, 
+            torpedo_transform.translation.y - GRID_SIZE * 2.0, 
             99.0,
         );
+        let player_xy = player_transform.translation.xy();
+        let delta_xy = (player_xy - translation.xy()).normalize();
+        let degrees = delta_xy.y.atan2(delta_xy.x).to_degrees() - 90.0;
         // bullet
         commands.spawn((
             Sprite::from_atlas_image(
@@ -81,12 +88,13 @@ fn shoot(
             ),
             Transform {
                 translation,
-                rotation: Quat::from_rotation_z(DEGREES.to_radians()),
+                rotation: Quat::from_rotation_z(degrees.to_radians()),
                 scale: SCALE,
             },
             animation_indices,
             AnimationTimer(Timer::from_seconds(FPS, TimerMode::Repeating)),
             Bullet,
+            Velocity(delta_xy * SPEED)
         ));
     }
 }
@@ -95,7 +103,7 @@ fn animation(
     mut query: Query<(&AnimationIndices, &mut AnimationTimer, &mut Sprite), With<Bullet>>,
     time: Res<Time>,
 ) {
-    // println!("enemy.bullet: animation");
+    // println!("torpedo.bullet: animation");
     for (indices, mut timer, mut sprite) in &mut query {
         timer.tick(time.delta());
 
@@ -108,14 +116,15 @@ fn animation(
     }
 }
 
-fn movement(
-    mut query: Query<&mut Transform, With<Bullet>>,
+fn apply_velocity(
+    mut query: Query<(&mut Transform, &Velocity), With<Bullet>>,
     time_step: Res<Time<Fixed>>,
 ) {
-    // println!("enemy.bullet: movement");
-    for mut transform in &mut query {
-        transform.translation.y -= SPEED * time_step.delta().as_secs_f32();
-        transform.translation.y += CAMERA_SPEED;
+    // println!("torpedo.ship: apply_velocity");
+    for (mut transform, velocity) in &mut query {
+        // movement
+        transform.translation.x += velocity.x * time_step.delta().as_secs_f32();
+        transform.translation.y += velocity.y * time_step.delta().as_secs_f32();
     }
 }
 
@@ -149,7 +158,7 @@ fn check_for_offscreen(
     camera_query: Query<&Transform, (With<MyCamera>, Without<Bullet>)>,
     bullet_query: Query<(Entity, &Transform), (With<Bullet>, Without<MyCamera>)>,
 ) {
-    // println!("fighter.bullet: check_for_offscreen");
+    // println!("torpedo.bullet: check_for_offscreen");
     let Ok(camera_transform) = camera_query.get_single() else { return };
     let camera_y = camera_transform.translation.y;
 
@@ -166,7 +175,7 @@ fn despawn(
     mut commands: Commands,
     query: Query<Entity, With<Bullet>>,
 ) {
-    // println!("fighter.bullet: despawn");
+    // println!("torpedo.bullet: despawn");
     for entity in &query { commands.entity(entity).despawn() }
 }
 
@@ -179,7 +188,7 @@ impl Plugin for BulletPlugin {
             .add_systems(Update, (
                 shoot,
                 animation,
-                movement,
+                apply_velocity,
                 // check_for_hit, // moved ingame/enemies/mod.rs
                 check_for_offscreen,
             ).run_if(in_state(AppState::Ingame)))

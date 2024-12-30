@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 pub mod ship;
-mod bullet;
+pub mod bullet;
 mod sound;
 mod despawn;
 

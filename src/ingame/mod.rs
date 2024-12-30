@@ -34,7 +34,7 @@ struct FighterShip {
 
 #[derive(Component)]
 struct TorpedoShip {
-    _shoot_timer: Timer,
+    shoot_timer: Timer,
 }
 
 pub struct IngamePlugin;
