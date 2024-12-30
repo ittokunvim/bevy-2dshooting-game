@@ -1,4 +1,7 @@
-use bevy::prelude::*;
+use bevy::{
+    prelude::*,
+    log::LogPlugin,
+};
 
 mod background;
 mod mainmenu;
@@ -34,6 +37,11 @@ fn main() {
                 ..Default::default()
             })
             .set(ImagePlugin::default_nearest())
+            .set(LogPlugin {
+                filter: "info,wgpu_core=warn,wgpu_hal=warn,bevy_2dshooting_game=debug".into(),
+                level: bevy::log::Level::DEBUG,
+                ..Default::default()
+            })
         )
         .insert_state(AppState::Mainmenu)
         .insert_resource(Score(0))
