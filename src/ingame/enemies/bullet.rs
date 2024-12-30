@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 use crate::AppState;
+use crate::ingame::CAMERA_SPEED;
 
 #[derive(Component)]
 pub struct AnimationConfig {
@@ -25,7 +26,7 @@ impl AnimationConfig {
     }
 }
 
-pub fn animation(
+fn animation(
     mut query: Query<(&mut AnimationConfig, &mut Sprite), With<AnimationConfig>>,
     time: Res<Time>,
 ) {
@@ -46,11 +47,37 @@ pub fn animation(
     }
 }
 
+#[derive(Component, Deref, DerefMut)]
+pub struct Velocity(Vec2);
+
+impl Velocity {
+    pub fn new(speed: Vec2) -> Self {
+        Self(speed)
+    }
+}
+
+fn apply_velocity(
+    mut query: Query<(&mut Transform, &Velocity), With<Velocity>>,
+    time_step: Res<Time<Fixed>>,
+) {
+    // println!("enemies.bullet: apply_velocity");
+    for (mut transform, velocity) in &mut query {
+        // movement
+        transform.translation.x += velocity.x * time_step.delta().as_secs_f32();
+        transform.translation.y += velocity.y * time_step.delta().as_secs_f32();
+        transform.translation.y += CAMERA_SPEED;
+    }
+}
+
 pub struct BulletPlugin;
 
 impl Plugin for BulletPlugin {
     fn build(&self, app: &mut App) {
         app
+            .add_systems(Update, (
+                animation,
+                apply_velocity,
+            ).run_if(in_state(AppState::Ingame)))
             .add_systems(Update, (
                 crate::ingame::enemies::fighter::bullet::check_for_hit,
                 crate::ingame::enemies::torpedo::bullet::check_for_hit,

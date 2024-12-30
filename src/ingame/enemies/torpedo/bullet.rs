@@ -32,9 +32,6 @@ struct BulletImage(Handle<Image>);
 #[derive(Component)]
 pub struct Bullet;
 
-#[derive(Component, Deref, DerefMut)]
-struct Velocity(Vec2);
-
 fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
@@ -85,20 +82,8 @@ fn shoot(
             },
             animation_config,
             Bullet,
-            Velocity(delta_xy * SPEED)
+            bullet::Velocity::new(delta_xy * SPEED)
         ));
-    }
-}
-
-fn apply_velocity(
-    mut query: Query<(&mut Transform, &Velocity), With<Bullet>>,
-    time_step: Res<Time<Fixed>>,
-) {
-    // println!("torpedo.ship: apply_velocity");
-    for (mut transform, velocity) in &mut query {
-        // movement
-        transform.translation.x += velocity.x * time_step.delta().as_secs_f32();
-        transform.translation.y += velocity.y * time_step.delta().as_secs_f32();
     }
 }
 
@@ -161,8 +146,6 @@ impl Plugin for BulletPlugin {
             .add_systems(OnEnter(AppState::Ingame), setup)
             .add_systems(Update, (
                 shoot,
-                bullet::animation,
-                apply_velocity,
                 // check_for_hit, // moved ingame/enemies/mod.rs
                 check_for_offscreen,
             ).run_if(in_state(AppState::Ingame)))

@@ -10,7 +10,6 @@ use crate::{
 };
 use crate::ingame::{
     GRID_SIZE,
-    CAMERA_SPEED,
     PLAYER_SIZE,
     PlayerDamageEvent,
     PlayerShip,
@@ -24,6 +23,7 @@ const COLUMN: u32 = 4;
 const ROW: u32 = 1;
 const DEGREES: f32 = 180.0;
 const SCALE: Vec3 = Vec3::splat(2.0);
+const DIRECTION: Vec2 = Vec2::new(0.0, -1.0);
 const SPEED: f32 = 256.0;
 const FPS: f32 = 0.1;
 const SIZE: Vec2 = Vec2::new(8.0, 32.0);
@@ -78,18 +78,8 @@ fn shoot(
             },
             animation_config,
             Bullet,
+            bullet::Velocity::new(DIRECTION * SPEED),
         ));
-    }
-}
-
-fn movement(
-    mut query: Query<&mut Transform, With<Bullet>>,
-    time_step: Res<Time<Fixed>>,
-) {
-    // println!("enemy.bullet: movement");
-    for mut transform in &mut query {
-        transform.translation.y -= SPEED * time_step.delta().as_secs_f32();
-        transform.translation.y += CAMERA_SPEED;
     }
 }
 
@@ -152,8 +142,6 @@ impl Plugin for BulletPlugin {
             .add_systems(OnEnter(AppState::Ingame), setup)
             .add_systems(Update, (
                 shoot,
-                bullet::animation,
-                movement,
                 // check_for_hit, // moved ingame/enemies/mod.rs
                 check_for_offscreen,
             ).run_if(in_state(AppState::Ingame)))
