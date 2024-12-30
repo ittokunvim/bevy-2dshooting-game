@@ -10,6 +10,7 @@ use crate::{
 };
 use crate::ingame::{
     GRID_SIZE,
+    CAMERA_SPEED,
     TORPEDO_SIZE as SIZE,
     TorpedoDamageEvent,
     TorpedoShip,
@@ -21,7 +22,7 @@ const SCALE: Vec3 = Vec3::splat(1.0);
 const DIRECTION: Vec2 = Vec2::new(1.0, 0.0);
 const SPEED: f32 = 128.0;
 const MAX_COUNT: usize = 1;
-const TIMER_RANGE: Range<f32> = 1.4..1.6;
+const TIMER_RANGE: Range<f32> = 1.5..2.0;
 
 #[derive(Resource, Deref)]
 struct ShipImage(Handle<Image>);
@@ -74,7 +75,7 @@ fn spawn(
             rotation: Quat::from_rotation_z(DEGREES.to_radians()),
             scale: SCALE,
         },
-        TorpedoShip { _shoot_timer: Timer::from_seconds(duration, mode) },
+        TorpedoShip { shoot_timer: Timer::from_seconds(duration, mode) },
         Velocity(direction * SPEED),
     ));
     **count += 1;
@@ -87,8 +88,9 @@ fn apply_velocity(
     // println!("torpedo.ship: apply_velocity");
     for (mut transform, velocity) in &mut query {
         // movement
-        transform.translation.x += velocity.x * time_step.delta().as_secs_f32();
+        transform.translation.x -= velocity.x * time_step.delta().as_secs_f32();
         transform.translation.y += velocity.y * time_step.delta().as_secs_f32();
+        transform.translation.y += CAMERA_SPEED;
     }
 }
 
