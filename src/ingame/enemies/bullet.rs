@@ -10,10 +10,9 @@ use crate::{
 };
 use crate::ingame::{
     CAMERA_SPEED,
-    PLAYER_SIZE,
     PlayerDamageEvent,
-    PlayerShip,
 };
+use crate::ingame::player::Player;
 
 #[derive(Component)]
 pub struct AnimationConfig {
@@ -134,18 +133,18 @@ impl Bullet {
 fn check_for_hit(
     mut commands: Commands,
     mut events: EventWriter<PlayerDamageEvent>,
-    bullet_query: Query<(Entity, &Bullet, &Transform), (With<Bullet>, Without<PlayerShip>)>,
-    player_query: Query<&Transform, (With<PlayerShip>, Without<Bullet>)>,
+    bullet_query: Query<(Entity, &Bullet, &Transform), (With<Bullet>, Without<Player>)>,
+    player_query: Query<(&Transform, &Player), (With<Player>, Without<Bullet>)>,
 ) {
     // println!("enemies.bullet: check_for_hit");
-    let Ok(player_transform) = player_query.get_single() else { return };
+    let Ok((player_transform, player)) = player_query.get_single() else { return };
     let player_pos = player_transform.translation.xy();
 
     for (bullet_entity, bullet, bullet_transform) in &bullet_query {
         let bullet_pos = bullet_transform.translation.xy();
 
         let collision = Aabb2d::new(bullet_pos, bullet.size / 2.0)
-            .intersects(&Aabb2d::new(player_pos, PLAYER_SIZE / 2.0));
+            .intersects(&Aabb2d::new(player_pos, player.size / 2.0));
 
         if collision {
             // damage player
@@ -190,15 +189,9 @@ impl Plugin for BulletPlugin {
             .add_systems(Update, (
                 animation,
                 apply_velocity,
-                // check_for_hit,
+                check_for_hit,
                 check_for_offscreen,
             ).run_if(in_state(AppState::Ingame)))
-            .add_systems(Update, (
-                check_for_hit,
-                crate::ingame::player::ship::damage_life,
-                crate::ingame::player::ship::damage_animation,
-                crate::ingame::player::ship::damage_despawn,
-            ).chain().run_if(in_state(AppState::Ingame)))
             .add_systems(OnExit(AppState::Ingame), all_despawn)
         ;
     }

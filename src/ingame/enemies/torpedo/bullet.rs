@@ -3,9 +3,9 @@ use bevy::prelude::*;
 use crate::AppState;
 use crate::ingame::{
     GRID_SIZE,
-    PlayerShip,
     TorpedoShip,
 };
+use crate::ingame::player::Player;
 use crate::ingame::enemies::bullet::{
     AnimationConfig,
     Velocity,
@@ -28,7 +28,6 @@ fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
-    // println!("torpedo.bullet: setup");
     let handle: Handle<Image> = asset_server.load(PATH_IMAGE);
     commands.insert_resource(BulletImage(handle));
 }
@@ -36,14 +35,13 @@ fn setup(
 fn shoot(
     mut commands: Commands,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
-    mut torpedo_query: Query<(&mut TorpedoShip, &Transform), (With<TorpedoShip>, Without<PlayerShip>)>,
-    player_query: Query<&Transform, (With<PlayerShip>, Without<TorpedoShip>)>,
+    mut torpedo_query: Query<(&mut TorpedoShip, &Transform), (With<TorpedoShip>, Without<Player>)>,
+    player_query: Query<&Transform, (With<Player>, Without<TorpedoShip>)>,
     bullet_image: Res<BulletImage>,
     time: Res<Time>,
 ) {
     let Ok(player_transform) = player_query.get_single() else { return };
 
-    // println!("torpedo.bullet: shoot");
     for (mut torpedo, torpedo_transform) in &mut torpedo_query {
         if !torpedo.shoot_timer.tick(time.delta()).just_finished() { continue }
 

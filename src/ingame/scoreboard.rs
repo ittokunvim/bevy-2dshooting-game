@@ -6,7 +6,7 @@ use crate::{
     AppState,
     Score,
 };
-use crate::ingame::PlayerLife;
+use crate::ingame::player::Player;
 
 const SCORE_TEXT: &str = "スコア: ";
 const LIFE_TEXT: &str = "ライフ: ";
@@ -27,7 +27,6 @@ fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
-    // println!("scoreboard: setup");
     // score
     let (top, left) = (
         Val::Px(TEXT_PADDING),
@@ -105,13 +104,13 @@ fn update_score(
 }
 
 fn update_life(
-    life: Res<PlayerLife>,
-    mut query: Query<&mut TextSpan, With<LifeText>>,
+    mut life_query: Query<&mut TextSpan, With<LifeText>>,
+    player_query: Query<&Player, With<Player>>,
 ) {
-    // println!("scoreboard: update_life");
-    let Ok(mut span) = query.get_single_mut() else { return };
+    let Ok(mut span) = life_query.get_single_mut() else { return };
+    let Ok(player) = player_query.get_single() else { return };
     // update player life
-    **span = life.to_string();
+    **span = player.hp.to_string();
 }
 
 fn reset_score(mut score: ResMut<Score>) {

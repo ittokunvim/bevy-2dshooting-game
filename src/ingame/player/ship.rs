@@ -8,19 +8,18 @@ use crate::{
 use crate::ingame::{
     GRID_SIZE,
     CAMERA_SPEED,
-    PLAYER_SIZE as SIZE,
-    PLAYER_LIFE as LIFE,
-    PlayerLife,
     PlayerDamageEvent,
-    PlayerShip,
 };
+use crate::ingame::player::Player;
 
-const PATH_IMAGE_PLAYER_SHIP: &str = "bevy-2dshooting-game/player-ship.png";
+const PATH_IMAGE: &str = "bevy-2dshooting-game/player-ship.png";
 const IMAGE_SIZE: UVec2 = UVec2::splat(32);
+const HP: usize = 8;
+const SIZE: Vec2 = Vec2::splat(32.0);
 const COLUMN: u32 = 4;
 const ROW: u32 = 1;
-const SCALE: Vec3 = Vec3::splat(2.0);
 const TRANSLATION: Vec3 = Vec3::new(0.0, GRID_SIZE * -12.0, 99.0);
+const SCALE: Vec3 = Vec3::splat(2.0);
 const SPEED: f32 = 256.0;
 
 #[derive(Component)]
@@ -34,11 +33,12 @@ fn setup(
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
     asset_server: Res<AssetServer>,
 ) {
-    // println!("player.ship: setup");
-    let texture = asset_server.load(PATH_IMAGE_PLAYER_SHIP);
+    let texture = asset_server.load(PATH_IMAGE);
     let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
+
     let animation_indices = AnimationIndices { first: 0, last: 3, };
+    let player = Player { hp: HP, size: SIZE };
     // player ship
     commands.spawn((
         Sprite::from_atlas_image(
@@ -54,17 +54,16 @@ fn setup(
             ..Default::default()
         },
         animation_indices,
-        PlayerShip,
+        player,
     ));
 }
 
 fn movement(
-    mut ship_query: Query<&mut Transform, (With<PlayerShip>, Without<MyCamera>)>,
-    camera_query: Query<&Transform, (With<MyCamera>, Without<PlayerShip>)>,
+    mut player_query: Query<&mut Transform, (With<Player>, Without<MyCamera>)>,
+    camera_query: Query<&Transform, (With<MyCamera>, Without<Player>)>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
     time_step: Res<Time<Fixed>>,
 ) {
-    // println!("player.ship: movement");
     let mut direction = Vec2::ZERO;
     // set direction
     for key in keyboard_input.get_pressed() {
@@ -77,7 +76,7 @@ fn movement(
         }
     }
 
-    let Ok(mut ship_transform) = ship_query.get_single_mut() else { return };
+    let Ok(mut ship_transform) = player_query.get_single_mut() else { return };
     let ship_xy = ship_transform.translation.xy();
     let Ok(camera_transform) = camera_query.get_single() else { return };
     let camera_xy = camera_transform.translation.xy();
@@ -99,29 +98,29 @@ fn movement(
     ship_transform.translation.y += CAMERA_SPEED;
 }
 
-pub fn damage_life(
+fn damage(
     mut events: EventReader<PlayerDamageEvent>,
-    mut life: ResMut<PlayerLife>,
+    mut query: Query<&mut Player, With<Player>>,
 ) {
-    // println!("player.ship: damage_life");
     if events.is_empty() { return }
     events.clear();
-    // reduce player life
-    **life -= 1;
+
+    let Ok(mut player) = query.get_single_mut() else { return };
+
+    player.hp -= 1;
 }
 
-pub fn damage_animation(
-    mut query: Query<(&AnimationIndices, &mut Sprite), With<PlayerShip>>,
+fn animation(
     mut events: EventReader<PlayerDamageEvent>,
-    life: Res<PlayerLife>,
+    mut query: Query<(&AnimationIndices, &Player, &mut Sprite), With<Player>>,
 ) {
-    // println!("player.ship: damage_animation");
     if events.is_empty() { return }
     events.clear();
 
-    let Ok((indices, mut sprite)) = query.get_single_mut() else { return };
+    let Ok((indices, player, mut sprite)) = query.get_single_mut() else { return };
+    let hp = player.hp;
     // do animation
-    if **life == 6 || **life == 4 || **life == 2 {
+    if hp == 6 || hp == 4 || hp == 2 {
         if let Some(atlas) = &mut sprite.texture_atlas {
             atlas.index = if atlas.index == indices.last 
                 { indices.first } else { atlas.index + 1 }
@@ -129,26 +128,19 @@ pub fn damage_animation(
     }
 }
 
-pub fn damage_despawn(
+fn despawn(
     mut commands: Commands,
-    query: Query<Entity, With<PlayerShip>>,
-    life: Res<PlayerLife>,
+    query: Query<(Entity, &Player), With<Player>>,
     mut next_state: ResMut<NextState<AppState>>,
 ) {
-    // println!("player.ship: damage_despawn");
-    let Ok(entity) = query.get_single() else { return };
+    let Ok((entity, player)) = query.get_single() else { return };
 
-    if **life <= 0 {
+    if player.hp <= 0 {
         // despawn ship
         commands.entity(entity).despawn();
         // moved app state Ingame -> Gameover
         next_state.set(AppState::Gameover);
     }
-}
-
-fn reset_life(mut life: ResMut<PlayerLife>) {
-    // println!("player.ship: reset_life");
-    **life = LIFE;
 }
 
 pub struct ShipPlugin;
@@ -159,11 +151,10 @@ impl Plugin for ShipPlugin {
             .add_systems(OnEnter(AppState::Ingame), setup)
             .add_systems(Update, (
                 movement,
-                // damage_life,      // moved ingame/enemy/bullet.rs
-                // damage_animation, // moved ingame/enemy/bullet.rs
-                // damage_despawn,   // moved ingame/enemy/bullet.rs
+                damage,
+                animation,
+                despawn,
             ).run_if(in_state(AppState::Ingame)))
-            .add_systems(OnExit(AppState::Gameover), reset_life)
         ;
     }
 }

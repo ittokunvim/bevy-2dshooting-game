@@ -7,6 +7,12 @@ mod sound;
 #[derive(Event, Default)]
 struct ShootEvent;
 
+#[derive(Component)]
+pub struct Player {
+    pub hp: usize,
+    pub size: Vec2,
+}
+
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {

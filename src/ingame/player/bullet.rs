@@ -15,11 +15,13 @@ use crate::ingame::{
     TORPEDO_SIZE,
     FighterDamageEvent,
     TorpedoDamageEvent,
-    PlayerShip,
     FighterShip,
     TorpedoShip,
 };
-use crate::ingame::player::ShootEvent;
+use crate::ingame::player::{
+    ShootEvent,
+    Player,
+};
 
 const PATH_IMAGE_PLAYER_BULLET: &str = "bevy-2dshooting-game/player-bullet.png";
 const IMAGE_SIZE: UVec2 = UVec2::splat(32);
@@ -74,7 +76,7 @@ fn shoot(
     mut events: EventReader<ShootEvent>,
     mut remaining: ResMut<Remaining>,
     bullet_image: Res<BulletImage>,
-    player_query: Query<&Transform, With<PlayerShip>>,
+    player_query: Query<&Transform, With<Player>>,
 ) {
     // println!("player.bullet: shoot");
     if events.is_empty() || **remaining <= 0 { return }
