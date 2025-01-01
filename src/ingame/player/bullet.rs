@@ -156,7 +156,7 @@ fn check_for_hit_fighter(
                 // flag a player bullet hit
                 is_hit_bullet = true;
                 // damage fighter
-                events.send(FighterDamageEvent(fighter_entity, fighter_pos));
+                events.send(FighterDamageEvent(fighter_entity));
             }
         }
         if is_hit_bullet {
@@ -189,7 +189,7 @@ fn check_for_hit_torpedo(
                 // flag a player bullet hit
                 is_hit_bullet = true;
                 // damage torpedo
-                events.send(TorpedoDamageEvent(torpedo_entity, torpedo_pos));
+                events.send(TorpedoDamageEvent(torpedo_entity));
             }
         }
         if is_hit_bullet {

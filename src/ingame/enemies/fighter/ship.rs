@@ -17,6 +17,8 @@ use crate::ingame::{
 use crate::ingame::enemies::fighter::ShipDespawnEvent;
 
 const PATH_IMAGE_ENEMY_SHIP: &str = "bevy-2dshooting-game/fighter-ship.png";
+const HP: usize = 1;
+const SCORE: usize = 10;
 const DEGREES: f32 = 180.0;
 const SCALE: Vec3 = Vec3::splat(1.0);
 const DIRECTION: Vec2 = Vec2::new(1.0, 0.0);
@@ -37,7 +39,6 @@ fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
-    // println!("enemy.ship: setup");
     let handle: Handle<Image> = asset_server.load(PATH_IMAGE_ENEMY_SHIP);
     commands.insert_resource(ShipImage(handle));
 }
@@ -48,7 +49,6 @@ fn spawn(
     image: Res<ShipImage>,
     query: Query<&Transform, With<MyCamera>>,
 ) {
-    // println!("enemy.ship: spawn");
     if **count >= MAX_COUNT { return }
 
     let mut rng = rand::thread_rng();
@@ -75,7 +75,7 @@ fn spawn(
             rotation: Quat::from_rotation_z(DEGREES.to_radians()),
             scale: SCALE,
         },
-        FighterShip { shoot_timer: Timer::from_seconds(duration, mode) },
+        FighterShip { hp: HP, shoot_timer: Timer::from_seconds(duration, mode) },
         Velocity(direction * SPEED),
     ));
     **count += 1;
@@ -85,9 +85,7 @@ fn apply_velocity(
     mut query: Query<(&mut Transform, &Velocity), With<FighterShip>>,
     time_step: Res<Time<Fixed>>,
 ) {
-    // println!("enemy.ship: apply_velocity");
     for (mut transform, velocity) in &mut query {
-        // movement
         transform.translation.x += velocity.x * time_step.delta().as_secs_f32();
         transform.translation.y += velocity.y * time_step.delta().as_secs_f32();
     }
@@ -96,7 +94,6 @@ fn apply_velocity(
 fn change_direction(
     mut query: Query<(&mut Velocity, &Transform), With<FighterShip>>,
 ) {
-    // println!("enemy.ship: change_direction");
     for (mut velocity, transform) in &mut query {
         let left_window_collision =
         WINDOW_SIZE.x / 2.0 < transform.translation.x + SIZE.x / 4.0;
@@ -110,23 +107,34 @@ fn change_direction(
 }
 
 pub fn damage(
-    mut commands: Commands,
-    mut fighter_damage_events: EventReader<FighterDamageEvent>,
-    mut ship_despawn_events: EventWriter<ShipDespawnEvent>,
-    mut count: ResMut<ShipCount>,
-    mut score: ResMut<Score>,
+    mut events: EventReader<FighterDamageEvent>,
+    mut query: Query<(Entity, &mut FighterShip), With<FighterShip>>,
 ) {
-    // println!("enemy.ship: damage");
-    for damage in fighter_damage_events.read() {
-        let (entity, vec2) = (damage.0, damage.1);
-        // send despawn event
-        ship_despawn_events.send(ShipDespawnEvent(vec2));
-        // decrement enemy count
-        **count -= 1;
-        // increment score
-        **score += 1;
-        // despawn ship
-        commands.entity(entity).despawn();
+    for event in events.read() {
+        let damage_entity = event.0;
+
+        for (entity, mut fighter) in &mut query {
+            if damage_entity == entity {
+                fighter.hp -= 1;
+            }
+        }
+    }
+}
+
+fn despawn(
+    mut commands: Commands,
+    mut events: EventWriter<ShipDespawnEvent>,
+    mut score: ResMut<Score>,
+    mut count: ResMut<ShipCount>,
+    query: Query<(Entity, &FighterShip, &Transform), With<FighterShip>>,
+) {
+    for (entity, fighter, transform) in &query {
+        if fighter.hp <= 0 {
+            events.send(ShipDespawnEvent(transform.translation.xy()));
+            **score += SCORE;
+            **count -= 1;
+            commands.entity(entity).despawn();
+        }
     }
 }
 
@@ -134,11 +142,10 @@ fn reset_count(mut count: ResMut<ShipCount>) {
     **count = 0;
 }
 
-fn despawn(
+fn all_despawn(
     mut commands: Commands,
     query: Query<Entity, With<FighterShip>>,
 ) {
-    // println!("enemy.ship: despawn");
     for entity in &query { commands.entity(entity).despawn() }
 }
 
@@ -154,10 +161,11 @@ impl Plugin for ShipPlugin {
                 apply_velocity,
                 change_direction,
                 // damage, // moved ingame/player/bullet.rs
+                despawn,
             ).run_if(in_state(AppState::Ingame)))
             .add_systems(OnExit(AppState::Ingame), (
                 reset_count,
-                despawn,
+                all_despawn,
             ))
         ;
     }

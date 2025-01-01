@@ -19,21 +19,23 @@ struct PlayerLife(usize);
 struct PlayerDamageEvent;
 
 #[derive(Event)]
-struct FighterDamageEvent(Entity, Vec2);
+struct FighterDamageEvent(Entity);
 
 #[derive(Event)]
-struct TorpedoDamageEvent(Entity, Vec2);
+struct TorpedoDamageEvent(Entity);
 
 #[derive(Component)]
 struct PlayerShip;
 
 #[derive(Component)]
 struct FighterShip {
+    hp: usize,
     shoot_timer: Timer,
 }
 
 #[derive(Component)]
 struct TorpedoShip {
+    hp: usize,
     shoot_timer: Timer,
 }
 
