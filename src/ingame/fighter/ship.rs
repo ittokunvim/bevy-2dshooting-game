@@ -8,17 +8,15 @@ use crate::{
     Score,
     MyCamera,
 };
-use crate::ingame::{
-    GRID_SIZE,
-    FIGHTER_SIZE as SIZE,
-    FighterDamageEvent,
-};
+use crate::ingame::GRID_SIZE;
 use crate::ingame::fighter::{
+    FighterDamageEvent,
     ShipDespawnEvent,
     Fighter,
 };
 
-const PATH_IMAGE_ENEMY_SHIP: &str = "bevy-2dshooting-game/fighter-ship.png";
+const PATH_IMAGE: &str = "bevy-2dshooting-game/fighter-ship.png";
+const SIZE: Vec2 = Vec2::splat(32.0);
 const HP: usize = 1;
 const SCORE: usize = 10;
 const DEGREES: f32 = 180.0;
@@ -41,7 +39,7 @@ fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
-    let handle: Handle<Image> = asset_server.load(PATH_IMAGE_ENEMY_SHIP);
+    let handle: Handle<Image> = asset_server.load(PATH_IMAGE);
     commands.insert_resource(ShipImage(handle));
 }
 
@@ -77,7 +75,7 @@ fn spawn(
             rotation: Quat::from_rotation_z(DEGREES.to_radians()),
             scale: SCALE,
         },
-        Fighter { hp: HP, shoot_timer: Timer::from_seconds(duration, mode) },
+        Fighter { size: SIZE, hp: HP, shoot_timer: Timer::from_seconds(duration, mode) },
         Velocity(direction * SPEED),
     ));
     **count += 1;
@@ -94,13 +92,13 @@ fn apply_velocity(
 }
 
 fn change_direction(
-    mut query: Query<(&mut Velocity, &Transform), With<Fighter>>,
+    mut query: Query<(&Fighter, &mut Velocity, &Transform), With<Fighter>>,
 ) {
-    for (mut velocity, transform) in &mut query {
+    for (fighter, mut velocity, transform) in &mut query {
         let left_window_collision =
-        WINDOW_SIZE.x / 2.0 < transform.translation.x + SIZE.x / 4.0;
+        WINDOW_SIZE.x / 2.0 < transform.translation.x + fighter.size.x / 4.0;
         let right_window_collision =
-        -WINDOW_SIZE.x / 2.0 > transform.translation.x - SIZE.x / 4.0;
+        -WINDOW_SIZE.x / 2.0 > transform.translation.x - fighter.size.x / 4.0;
 
         if left_window_collision || right_window_collision {
             velocity.x = -velocity.x;

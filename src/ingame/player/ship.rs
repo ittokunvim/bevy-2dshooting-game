@@ -8,9 +8,11 @@ use crate::{
 use crate::ingame::{
     GRID_SIZE,
     CAMERA_SPEED,
-    PlayerDamageEvent,
 };
-use crate::ingame::player::Player;
+use crate::ingame::player::{
+    PlayerDamageEvent,
+    Player,
+};
 
 const PATH_IMAGE: &str = "bevy-2dshooting-game/player-ship.png";
 const IMAGE_SIZE: UVec2 = UVec2::splat(32);

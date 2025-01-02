@@ -11,17 +11,19 @@ use crate::{
 use crate::ingame::{
     GRID_SIZE,
     CAMERA_SPEED,
-    FIGHTER_SIZE,
-    TORPEDO_SIZE,
-    FighterDamageEvent,
-    TorpedoDamageEvent,
 };
 use crate::ingame::player::{
     ShootEvent,
     Player,
 };
-use crate::ingame::fighter::Fighter;
-use crate::ingame::torpedo::Torpedo;
+use crate::ingame::fighter::{
+    FighterDamageEvent,
+    Fighter,
+};
+use crate::ingame::torpedo::{
+    TorpedoDamageEvent,
+    Torpedo,
+};
 
 const PATH_IMAGE: &str = "bevy-2dshooting-game/player-bullet.png";
 const IMAGE_SIZE: UVec2 = UVec2::splat(32);
@@ -137,16 +139,16 @@ fn check_for_hit_fighter(
     mut events: EventWriter<FighterDamageEvent>,
     mut remaining: ResMut<Remaining>,
     bullet_query: Query<(Entity, &Transform), (With<Bullet>, Without<Fighter>)>,
-    fighter_query: Query<(Entity, &Transform), (With<Fighter>, Without<Bullet>)>,
+    fighter_query: Query<(Entity, &Fighter, &Transform), (With<Fighter>, Without<Bullet>)>,
 ) {
     for (bullet_entity, bullet_transform) in &bullet_query {
         let bullet_pos = bullet_transform.translation.xy();
         let mut is_hit_bullet = false;
 
-        for (fighter_entity, fighter_transform) in &fighter_query {
+        for (fighter_entity, fighter, fighter_transform) in &fighter_query {
             let fighter_pos = fighter_transform.translation.xy();
             let collision = Aabb2d::new(bullet_pos, SIZE / 2.0)
-                .intersects(&Aabb2d::new(fighter_pos, FIGHTER_SIZE / 2.0));
+                .intersects(&Aabb2d::new(fighter_pos, fighter.size / 2.0));
 
             if collision {
                 // flag a player bullet hit
@@ -169,16 +171,16 @@ fn check_for_hit_torpedo(
     mut events: EventWriter<TorpedoDamageEvent>,
     mut remaining: ResMut<Remaining>,
     bullet_query: Query<(Entity, &Transform), (With<Bullet>, Without<Fighter>)>,
-    torpedo_query: Query<(Entity, &Transform), (With<Torpedo>, Without<Bullet>)>,
+    torpedo_query: Query<(Entity, &Torpedo, &Transform), (With<Torpedo>, Without<Bullet>)>,
 ) {
     for (bullet_entity, bullet_transform) in &bullet_query {
         let bullet_pos = bullet_transform.translation.xy();
         let mut is_hit_bullet = false;
 
-        for (torpedo_entity, torpedo_transform) in &torpedo_query {
+        for (torpedo_entity, torpedo, torpedo_transform) in &torpedo_query {
             let torpedo_pos = torpedo_transform.translation.xy();
             let collision = Aabb2d::new(bullet_pos, SIZE / 2.0)
-                .intersects(&Aabb2d::new(torpedo_pos, TORPEDO_SIZE / 2.0));
+                .intersects(&Aabb2d::new(torpedo_pos, torpedo.size / 2.0));
 
             if collision {
                 // flag a player bullet hit

@@ -11,12 +11,14 @@ use crate::{
 use crate::ingame::{
     GRID_SIZE,
     CAMERA_SPEED,
-    TORPEDO_SIZE as SIZE,
-    TorpedoDamageEvent,
 };
-use crate::ingame::torpedo::Torpedo;
+use crate::ingame::torpedo::{
+    TorpedoDamageEvent,
+    Torpedo,
+};
 
 const PATH_IMAGE: &str = "bevy-2dshooting-game/torpedo-ship.png";
+const SIZE: Vec2 = Vec2::splat(32.0);
 const HP: usize = 3;
 const SCORE: usize = 30;
 const DEGREES: f32 = 180.0;
@@ -76,7 +78,7 @@ fn spawn(
             rotation: Quat::from_rotation_z(DEGREES.to_radians()),
             scale: SCALE,
         },
-        Torpedo { hp: HP, shoot_timer: Timer::from_seconds(duration, mode) },
+        Torpedo { size: SIZE, hp: HP, shoot_timer: Timer::from_seconds(duration, mode) },
         Velocity(direction * SPEED),
     ));
     **count += 1;

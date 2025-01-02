@@ -11,9 +11,11 @@ use crate::{
 use crate::ingame::{
     GRID_SIZE,
     CAMERA_SPEED,
-    PlayerDamageEvent,
 };
-use crate::ingame::player::Player;
+use crate::ingame::player::{
+    PlayerDamageEvent,
+    Player,
+};
 use crate::ingame::fighter::Fighter;
 
 const PATH_IMAGE: &str = "bevy-2dshooting-game/fighter-bullet.png";
