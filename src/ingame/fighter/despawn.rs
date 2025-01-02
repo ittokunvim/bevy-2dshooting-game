@@ -1,9 +1,9 @@
 use bevy::prelude::*;
 
 use crate::AppState;
-use crate::ingame::enemies::fighter::ShipDespawnEvent;
+use crate::ingame::fighter::ShipDespawnEvent;
 
-const PATH_IMAGE_ENEMY_DESPAWN: &str = "bevy-2dshooting-game/enemy-despawn.png";
+const PATH_IMAGE: &str = "bevy-2dshooting-game/enemy-despawn.png";
 const IMAGE_SIZE: UVec2 = UVec2::splat(64);
 const COLUMN: u32 = 9;
 const ROW: u32 = 1;
@@ -26,7 +26,7 @@ fn setup(
     asset_server: Res<AssetServer>,
 ) {
     // println!("enemy.despawn: setup");
-    let handle: Handle<Image> = asset_server.load(PATH_IMAGE_ENEMY_DESPAWN);
+    let handle: Handle<Image> = asset_server.load(PATH_IMAGE);
     commands.insert_resource(DespawnImage(handle));
 }
 

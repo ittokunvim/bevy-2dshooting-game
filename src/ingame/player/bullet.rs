@@ -20,7 +20,7 @@ use crate::ingame::player::{
     ShootEvent,
     Player,
 };
-use crate::ingame::enemies::fighter::Fighter;
+use crate::ingame::fighter::Fighter;
 use crate::ingame::enemies::torpedo::Torpedo;
 
 const PATH_IMAGE: &str = "bevy-2dshooting-game/player-bullet.png";

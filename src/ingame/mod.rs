@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 mod enemies;
+mod fighter;
 mod player;
 mod camera;
 mod scoreboard;
@@ -28,6 +29,7 @@ impl Plugin for IngamePlugin {
             .add_event::<FighterDamageEvent>()
             .add_event::<TorpedoDamageEvent>()
             .add_plugins(enemies::EnemiesPlugin)
+            .add_plugins(fighter::FighterPlugin)
             .add_plugins(player::PlayerPlugin)
             .add_plugins(camera::CameraPlugin)
             .add_plugins(scoreboard::ScoreboardPlugin)

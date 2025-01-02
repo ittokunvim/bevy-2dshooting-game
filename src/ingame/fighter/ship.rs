@@ -13,7 +13,7 @@ use crate::ingame::{
     FIGHTER_SIZE as SIZE,
     FighterDamageEvent,
 };
-use crate::ingame::enemies::fighter::{
+use crate::ingame::fighter::{
     ShipDespawnEvent,
     Fighter,
 };
