@@ -12,9 +12,11 @@ use crate::ingame::{
     GRID_SIZE,
     FIGHTER_SIZE as SIZE,
     FighterDamageEvent,
-    FighterShip,
 };
-use crate::ingame::enemies::fighter::ShipDespawnEvent;
+use crate::ingame::enemies::fighter::{
+    ShipDespawnEvent,
+    Fighter,
+};
 
 const PATH_IMAGE_ENEMY_SHIP: &str = "bevy-2dshooting-game/fighter-ship.png";
 const HP: usize = 1;
@@ -75,14 +77,14 @@ fn spawn(
             rotation: Quat::from_rotation_z(DEGREES.to_radians()),
             scale: SCALE,
         },
-        FighterShip { hp: HP, shoot_timer: Timer::from_seconds(duration, mode) },
+        Fighter { hp: HP, shoot_timer: Timer::from_seconds(duration, mode) },
         Velocity(direction * SPEED),
     ));
     **count += 1;
 }
 
 fn apply_velocity(
-    mut query: Query<(&mut Transform, &Velocity), With<FighterShip>>,
+    mut query: Query<(&mut Transform, &Velocity), With<Fighter>>,
     time_step: Res<Time<Fixed>>,
 ) {
     for (mut transform, velocity) in &mut query {
@@ -92,7 +94,7 @@ fn apply_velocity(
 }
 
 fn change_direction(
-    mut query: Query<(&mut Velocity, &Transform), With<FighterShip>>,
+    mut query: Query<(&mut Velocity, &Transform), With<Fighter>>,
 ) {
     for (mut velocity, transform) in &mut query {
         let left_window_collision =
@@ -106,9 +108,9 @@ fn change_direction(
     }
 }
 
-pub fn damage(
+fn damage(
     mut events: EventReader<FighterDamageEvent>,
-    mut query: Query<(Entity, &mut FighterShip), With<FighterShip>>,
+    mut query: Query<(Entity, &mut Fighter), With<Fighter>>,
 ) {
     for event in events.read() {
         let damage_entity = event.0;
@@ -126,7 +128,7 @@ fn despawn(
     mut events: EventWriter<ShipDespawnEvent>,
     mut score: ResMut<Score>,
     mut count: ResMut<ShipCount>,
-    query: Query<(Entity, &FighterShip, &Transform), With<FighterShip>>,
+    query: Query<(Entity, &Fighter, &Transform), With<Fighter>>,
 ) {
     for (entity, fighter, transform) in &query {
         if fighter.hp <= 0 {
@@ -144,7 +146,7 @@ fn reset_count(mut count: ResMut<ShipCount>) {
 
 fn all_despawn(
     mut commands: Commands,
-    query: Query<Entity, With<FighterShip>>,
+    query: Query<Entity, With<Fighter>>,
 ) {
     for entity in &query { commands.entity(entity).despawn() }
 }
@@ -160,7 +162,7 @@ impl Plugin for ShipPlugin {
                 spawn,
                 apply_velocity,
                 change_direction,
-                // damage, // moved ingame/player/bullet.rs
+                damage,
                 despawn,
             ).run_if(in_state(AppState::Ingame)))
             .add_systems(OnExit(AppState::Ingame), (

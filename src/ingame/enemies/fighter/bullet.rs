@@ -1,10 +1,8 @@
 use bevy::prelude::*;
 
 use crate::AppState;
-use crate::ingame::{
-    GRID_SIZE,
-    FighterShip,
-};
+use crate::ingame::GRID_SIZE;
+use crate::ingame::enemies::fighter::Fighter;
 use crate::ingame::enemies::bullet::{
     AnimationConfig,
     Velocity,
@@ -37,7 +35,7 @@ fn setup(
 fn shoot(
     mut commands: Commands,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
-    mut fighter_query: Query<(&mut FighterShip, &Transform), With<FighterShip>>,
+    mut fighter_query: Query<(&mut Fighter, &Transform), With<Fighter>>,
     bullet_image: Res<BulletImage>,
     time: Res<Time>,
 ) {

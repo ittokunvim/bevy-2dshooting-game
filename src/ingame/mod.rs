@@ -20,12 +20,6 @@ struct FighterDamageEvent(Entity);
 struct TorpedoDamageEvent(Entity);
 
 #[derive(Component)]
-struct FighterShip {
-    hp: usize,
-    shoot_timer: Timer,
-}
-
-#[derive(Component)]
 struct TorpedoShip {
     hp: usize,
     shoot_timer: Timer,

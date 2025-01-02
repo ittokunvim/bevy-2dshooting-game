@@ -15,13 +15,13 @@ use crate::ingame::{
     TORPEDO_SIZE,
     FighterDamageEvent,
     TorpedoDamageEvent,
-    FighterShip,
     TorpedoShip,
 };
 use crate::ingame::player::{
     ShootEvent,
     Player,
 };
+use crate::ingame::enemies::fighter::Fighter;
 
 const PATH_IMAGE_PLAYER_BULLET: &str = "bevy-2dshooting-game/player-bullet.png";
 const IMAGE_SIZE: UVec2 = UVec2::splat(32);
@@ -55,7 +55,6 @@ fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
-    // println!("player.bullet: setup");
     let handle: Handle<Image> = asset_server.load(PATH_IMAGE_PLAYER_BULLET);
     commands.insert_resource(BulletImage(handle));
 }
@@ -64,7 +63,6 @@ fn event(
     mut events: EventWriter<ShootEvent>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
 ) {
-    // println!("player.bullet: event");
     if !keyboard_input.just_pressed(KEYCODE) { return }
     // send shoot event
     events.send_default();
@@ -78,7 +76,6 @@ fn shoot(
     bullet_image: Res<BulletImage>,
     player_query: Query<&Transform, With<Player>>,
 ) {
-    // println!("player.bullet: shoot");
     if events.is_empty() || **remaining <= 0 { return }
     events.clear();
 
@@ -113,7 +110,6 @@ fn animation(
     mut query: Query<(&AnimationIndices, &mut AnimationTimer, &mut Sprite), With<Bullet>>,
     time: Res<Time>,
 ) {
-    // println!("player.bullet: animation");
     for (indices, mut timer, mut sprite) in &mut query {
         timer.tick(time.delta());
 
@@ -130,7 +126,6 @@ fn movement(
     mut query: Query<&mut Transform, With<Bullet>>,
     time_step: Res<Time<Fixed>>,
 ) {
-    // println!("player.bullet: movement");
     for mut transform in &mut query {
         transform.translation.y += SPEED * time_step.delta().as_secs_f32();
         transform.translation.y += CAMERA_SPEED;
@@ -141,10 +136,9 @@ fn check_for_hit_fighter(
     mut commands: Commands,
     mut events: EventWriter<FighterDamageEvent>,
     mut remaining: ResMut<Remaining>,
-    bullet_query: Query<(Entity, &Transform), (With<Bullet>, Without<FighterShip>)>,
-    fighter_query: Query<(Entity, &Transform), (With<FighterShip>, Without<Bullet>)>,
+    bullet_query: Query<(Entity, &Transform), (With<Bullet>, Without<Fighter>)>,
+    fighter_query: Query<(Entity, &Transform), (With<Fighter>, Without<Bullet>)>,
 ) {
-    // println!("player.bullet: check_for_hit_fighter");
     for (bullet_entity, bullet_transform) in &bullet_query {
         let bullet_pos = bullet_transform.translation.xy();
         let mut is_hit_bullet = false;
@@ -174,10 +168,9 @@ fn check_for_hit_torpedo(
     mut commands: Commands,
     mut events: EventWriter<TorpedoDamageEvent>,
     mut remaining: ResMut<Remaining>,
-    bullet_query: Query<(Entity, &Transform), (With<Bullet>, Without<FighterShip>)>,
+    bullet_query: Query<(Entity, &Transform), (With<Bullet>, Without<Fighter>)>,
     torpedo_query: Query<(Entity, &Transform), (With<TorpedoShip>, Without<Bullet>)>,
 ) {
-    // println!("player.bullet: check_for_hit_torpedo");
     for (bullet_entity, bullet_transform) in &bullet_query {
         let bullet_pos = bullet_transform.translation.xy();
         let mut is_hit_bullet = false;
@@ -209,7 +202,6 @@ fn check_for_offscreen(
     camera_query: Query<&Transform, (With<MyCamera>, Without<Bullet>)>,
     bullet_query: Query<(Entity, &Transform), (With<Bullet>, Without<MyCamera>)>,
 ) {
-    // println!("player.bullet: check_for_offscreen");
     let Ok(camera_transform) = camera_query.get_single() else { return };
     let camera_y = camera_transform.translation.y;
 
@@ -233,7 +225,6 @@ fn despawn(
     mut commands: Commands,
     query: Query<Entity, With<Bullet>>,
 ) {
-    // println!("player.bullet: despawn");
     for entity in &query { commands.entity(entity).despawn() }
 }
 
@@ -249,13 +240,9 @@ impl Plugin for BulletPlugin {
                 shoot,
                 animation,
                 movement,
-                // check_for_hit,
+                check_for_hit_fighter,
                 check_for_offscreen,
             ).run_if(in_state(AppState::Ingame)))
-            .add_systems(Update, (
-                check_for_hit_fighter,
-                crate::ingame::enemies::fighter::ship::damage,
-            ).chain().run_if(in_state(AppState::Ingame)))
             .add_systems(Update, (
                 check_for_hit_torpedo,
                 crate::ingame::enemies::torpedo::ship::damage,
