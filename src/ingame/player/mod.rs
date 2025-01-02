@@ -4,6 +4,8 @@ pub mod ship;
 mod bullet;
 mod sound;
 
+pub const BULLETS: usize = 2;
+
 #[derive(Event, Default)]
 struct ShootEvent;
 
@@ -14,6 +16,13 @@ pub struct PlayerDamageEvent;
 pub struct Player {
     pub hp: usize,
     pub size: Vec2,
+    pub bullets: usize,
+}
+
+impl Player {
+    fn new(hp: usize, size: Vec2, bullets: usize) -> Self {
+        Self { hp, size, bullets, }
+    }
 }
 
 pub struct PlayerPlugin;

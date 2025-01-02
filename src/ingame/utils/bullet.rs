@@ -9,6 +9,7 @@ use crate::{
     MyCamera,
 };
 use crate::ingame::player::{
+    BULLETS,
     PlayerDamageEvent,
     Player,
 };
@@ -30,9 +31,8 @@ pub struct Bullet {
 
 #[derive(PartialEq)]
 pub enum Shooter {
-    Fighter,
     Player,
-    Torpedo,
+    Enemy,
 }
 
 impl Bullet {
@@ -107,6 +107,7 @@ fn check_for_hit_player(
 fn check_for_hit_fighter(
     mut commands: Commands,
     mut events: EventWriter<FighterDamageEvent>,
+    mut player_query: Query<&mut Player, With<Player>>,
     bullet_query: Query<(&Bullet, Entity, &Transform), (With<Bullet>, Without<Fighter>)>,
     fighter_query: Query<(&Fighter, Entity, &Transform), (With<Fighter>, Without<Bullet>)>,
 ) {
@@ -123,7 +124,10 @@ fn check_for_hit_fighter(
                 .intersects(&Aabb2d::new(fighter_pos, fighter.size / 2.0));
 
             if collision {
+                let Ok(mut player) = player_query.get_single_mut() else { return };
+
                 is_hit_bullet = true;
+                player.bullets += 1;
                 events.send(FighterDamageEvent(fighter_entity));
             }
         }
@@ -136,6 +140,7 @@ fn check_for_hit_fighter(
 fn check_for_hit_torpedo(
     mut commands: Commands,
     mut events: EventWriter<TorpedoDamageEvent>,
+    mut player_query: Query<&mut Player, With<Player>>,
     bullet_query: Query<(&Bullet, Entity, &Transform), (With<Bullet>, Without<Torpedo>)>,
     torpedo_query: Query<(&Torpedo, Entity, &Transform), (With<Torpedo>, Without<Bullet>)>,
 ) {
@@ -151,7 +156,10 @@ fn check_for_hit_torpedo(
                 .intersects(&Aabb2d::new(torpedo_pos, torpedo.size / 2.0));
 
             if collision {
+                let Ok(mut player) = player_query.get_single_mut() else { return };
+
                 is_hit_bullet = true;
+                player.bullets += 1;
                 events.send(TorpedoDamageEvent(torpedo_entity));
             }
         }
@@ -163,6 +171,7 @@ fn check_for_hit_torpedo(
 
 fn check_for_offscreen(
     mut commands: Commands,
+    mut player_query: Query<&mut Player, With<Player>>,
     window_query: Query<&Window, With<PrimaryWindow>>,
     camera_query: Query<&Transform, (With<MyCamera>, Without<Bullet>)>,
     bullet_query: Query<(&Bullet, Entity, &Transform), (With<Bullet>, Without<MyCamera>)>,
@@ -183,9 +192,21 @@ fn check_for_offscreen(
 
         if bullet_x <= left_bound || bullet_x >= right_bound
         || bullet_y <= bottom_bound || bullet_y >= top_bound {
+            if bullet.shooter == Shooter::Player {
+                let Ok(mut player) = player_query.get_single_mut() else { return };
+                player.bullets += 1;
+            }
             commands.entity(bullet_entity).despawn();
         }
     }
+}
+
+fn reset_bullets(
+    mut query: Query<&mut Player, With<Player>>,
+) {
+    let Ok(mut player) = query.get_single_mut() else { return };
+
+    player.bullets = BULLETS;
 }
 
 fn all_despawn(
@@ -206,7 +227,10 @@ impl Plugin for BulletPlugin {
                 check_for_hit_torpedo,
                 check_for_offscreen,
             ).run_if(in_state(AppState::Ingame)))
-            .add_systems(OnExit(AppState::Ingame), all_despawn)
+            .add_systems(OnExit(AppState::Ingame), (
+                reset_bullets,
+                all_despawn,
+            ))
         ;
     }
 }

@@ -48,7 +48,7 @@ fn shoot(
         let animation_config = AnimationConfig::new(AnimationName::Bullet, 0, 3, FPS);
         let velocity = Velocity(DIRECTION * SPEED);
         let bullet = Bullet::new(
-            Shooter::Fighter,
+            Shooter::Enemy,
             SIZE, 
             bullet_image.clone(), 
             texture_atlas_layout.clone(), 

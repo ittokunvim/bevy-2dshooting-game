@@ -10,6 +10,7 @@ use crate::ingame::{
     CAMERA_SPEED,
 };
 use crate::ingame::player::{
+    BULLETS,
     PlayerDamageEvent,
     Player,
 };
@@ -35,7 +36,7 @@ fn setup(
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
 
     let animation_indices = AnimationConfig::new(AnimationName::PlayerDamage, 0, 3, 0.0);
-    let player = Player { hp: HP, size: SIZE };
+    let player = Player::new(HP, SIZE, BULLETS);
     // player ship
     commands.spawn((
         Sprite::from_atlas_image(

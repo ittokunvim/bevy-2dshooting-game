@@ -19,13 +19,9 @@ const SIZE: Vec2 = Vec2::splat(32.0);
 const DEGREES: f32 = 0.0;
 const SCALE: Vec3 = Vec3::splat(1.0);
 const KEYCODE: KeyCode = KeyCode::Space;
-const MAX_COUNT: usize = 2;
 
 #[derive(Resource, Deref)]
 struct BulletImage(Handle<Image>);
-
-#[derive(Resource, Deref, DerefMut, Debug)]
-struct Remaining(usize);
 
 fn setup(
     mut commands: Commands,
@@ -48,19 +44,20 @@ fn shoot(
     mut commands: Commands,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
     mut events: EventReader<ShootEvent>,
-    mut remaining: ResMut<Remaining>,
+    mut player_query: Query<(&mut Player, &Transform), With<Player>>,
     bullet_image: Res<BulletImage>,
-    player_query: Query<&Transform, With<Player>>,
 ) {
-    if events.is_empty() || **remaining <= 0 { return }
+    let Ok((mut player, transform)) = player_query.get_single_mut() else { return };
+
+    if events.is_empty() { return }
     events.clear();
+    if player.bullets <= 0 { return }
 
     let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
-    let Ok(player_transform) = player_query.get_single() else { return };
     let translation = Vec3::new(
-        player_transform.translation.x, 
-        player_transform.translation.y + GRID_SIZE * 2.0, 
+        transform.translation.x, 
+        transform.translation.y + GRID_SIZE * 2.0, 
         99.0,
     );
 
@@ -78,12 +75,7 @@ fn shoot(
     );
     // bullet
     commands.spawn((bullet, animation_config, velocity));
-    // increase remaining bullet
-    **remaining -= 1;
-}
-
-fn reset_remaining(mut remaining: ResMut<Remaining>) {
-    **remaining = MAX_COUNT;
+    player.bullets -= 1;
 }
 
 pub struct BulletPlugin;
@@ -91,13 +83,11 @@ pub struct BulletPlugin;
 impl Plugin for BulletPlugin {
     fn build(&self, app: &mut App) {
         app
-            .insert_resource(Remaining(MAX_COUNT))
             .add_systems(OnEnter(AppState::Ingame), setup)
             .add_systems(Update, (
                 event,
                 shoot,
             ).run_if(in_state(AppState::Ingame)))
-            .add_systems(OnExit(AppState::Ingame), reset_remaining)
         ;
     }
 }
