@@ -21,7 +21,7 @@ use crate::ingame::player::{
     Player,
 };
 use crate::ingame::fighter::Fighter;
-use crate::ingame::enemies::torpedo::Torpedo;
+use crate::ingame::torpedo::Torpedo;
 
 const PATH_IMAGE: &str = "bevy-2dshooting-game/player-bullet.png";
 const IMAGE_SIZE: UVec2 = UVec2::splat(32);

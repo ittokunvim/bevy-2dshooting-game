@@ -14,7 +14,7 @@ use crate::ingame::{
     TORPEDO_SIZE as SIZE,
     TorpedoDamageEvent,
 };
-use crate::ingame::enemies::torpedo::Torpedo;
+use crate::ingame::torpedo::Torpedo;
 
 const PATH_IMAGE: &str = "bevy-2dshooting-game/torpedo-ship.png";
 const HP: usize = 3;
