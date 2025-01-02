@@ -8,10 +8,7 @@ use crate::{
     AppState,
     MyCamera,
 };
-use crate::ingame::{
-    GRID_SIZE,
-    CAMERA_SPEED,
-};
+use crate::ingame::GRID_SIZE;
 use crate::ingame::player::{
     ShootEvent,
     Player,
@@ -28,12 +25,14 @@ use crate::ingame::utils::animation_config::{
     AnimationConfig,
     AnimationName,
 };
+use crate::ingame::utils::velocity::Velocity;
 
 const PATH_IMAGE: &str = "bevy-2dshooting-game/player-bullet.png";
 const IMAGE_SIZE: UVec2 = UVec2::splat(32);
 const SIZE: Vec2 = Vec2::splat(32.0);
 const COLUMN: u32 = 4;
 const ROW: u32 = 1;
+const DIRECTION: Vec2 = Vec2::new(0.0, 1.0);
 const SPEED: f32 = 512.0;
 const FPS: f32 = 0.1;
 const KEYCODE: KeyCode = KeyCode::Space;
@@ -78,13 +77,15 @@ fn shoot(
 
     let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
-    let animation_config = AnimationConfig::new(AnimationName::Bullet, 0, 3, FPS);
     let Ok(player_transform) = player_query.get_single() else { return };
     let translation = Vec3::new(
         player_transform.translation.x, 
         player_transform.translation.y + GRID_SIZE * 2.0, 
         99.0,
     );
+
+    let animation_config = AnimationConfig::new(AnimationName::Bullet, 0, 3, FPS);
+    let velocity = Velocity(DIRECTION * SPEED);
     // bullet
     commands.spawn((
         Sprite::from_atlas_image(
@@ -96,20 +97,11 @@ fn shoot(
         ),
         Transform::from_translation(translation),
         animation_config,
+        velocity,
         Bullet,
     ));
     // increase remaining bullet
     **remaining -= 1;
-}
-
-fn movement(
-    mut query: Query<&mut Transform, With<Bullet>>,
-    time_step: Res<Time<Fixed>>,
-) {
-    for mut transform in &mut query {
-        transform.translation.y += SPEED * time_step.delta().as_secs_f32();
-        transform.translation.y += CAMERA_SPEED;
-    }
 }
 
 fn check_for_hit_fighter(
@@ -218,7 +210,6 @@ impl Plugin for BulletPlugin {
             .add_systems(Update, (
                 event,
                 shoot,
-                movement,
                 check_for_hit_fighter,
                 check_for_hit_torpedo,
                 check_for_offscreen,

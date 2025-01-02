@@ -14,6 +14,7 @@ use crate::ingame::fighter::{
     ShipDespawnEvent,
     Fighter,
 };
+use crate::ingame::utils::velocity::Velocity;
 
 const PATH_IMAGE: &str = "bevy-2dshooting-game/fighter-ship.png";
 const SIZE: Vec2 = Vec2::splat(32.0);
@@ -21,7 +22,7 @@ const HP: usize = 1;
 const SCORE: usize = 10;
 const DEGREES: f32 = 180.0;
 const SCALE: Vec3 = Vec3::splat(1.0);
-const DIRECTION: Vec2 = Vec2::new(1.0, 0.0);
+const DIRECTION: Vec2 = Vec2::new(1.0, -0.05);
 const SPEED: f32 = 256.0;
 const MAX_COUNT: usize = 4;
 const TIMER_RANGE: Range<f32> = 0.4..0.6;
@@ -31,9 +32,6 @@ struct ShipImage(Handle<Image>);
 
 #[derive(Resource, Deref, DerefMut, Debug)]
 pub struct ShipCount(usize);
-
-#[derive(Component, Deref, DerefMut)]
-struct Velocity(Vec2);
 
 fn setup(
     mut commands: Commands,
@@ -79,16 +77,6 @@ fn spawn(
         Velocity(direction * SPEED),
     ));
     **count += 1;
-}
-
-fn apply_velocity(
-    mut query: Query<(&mut Transform, &Velocity), With<Fighter>>,
-    time_step: Res<Time<Fixed>>,
-) {
-    for (mut transform, velocity) in &mut query {
-        transform.translation.x += velocity.x * time_step.delta().as_secs_f32();
-        transform.translation.y += velocity.y * time_step.delta().as_secs_f32();
-    }
 }
 
 fn change_direction(
@@ -158,7 +146,6 @@ impl Plugin for ShipPlugin {
             .add_systems(OnEnter(AppState::Ingame), setup)
             .add_systems(Update, (
                 spawn,
-                apply_velocity,
                 change_direction,
                 damage,
                 despawn,

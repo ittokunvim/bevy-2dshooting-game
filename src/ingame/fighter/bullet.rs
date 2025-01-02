@@ -8,10 +8,7 @@ use crate::{
     AppState,
     MyCamera,
 };
-use crate::ingame::{
-    GRID_SIZE,
-    CAMERA_SPEED,
-};
+use crate::ingame::GRID_SIZE;
 use crate::ingame::player::{
     PlayerDamageEvent,
     Player,
@@ -21,6 +18,7 @@ use crate::ingame::utils::animation_config::{
     AnimationConfig,
     AnimationName,
 };
+use crate::ingame::utils::velocity::Velocity;
 
 const PATH_IMAGE: &str = "bevy-2dshooting-game/fighter-bullet.png";
 const IMAGE_SIZE: UVec2 = UVec2::new(4, 16);
@@ -35,9 +33,6 @@ const SIZE: Vec2 = Vec2::new(8.0, 32.0);
 
 #[derive(Resource, Deref)]
 struct BulletImage(Handle<Image>);
-
-#[derive(Component, Deref, DerefMut)]
-pub struct Velocity(Vec2);
 
 #[derive(Component)]
 #[require(Sprite, Transform)]
@@ -131,18 +126,6 @@ fn shoot(
     }
 }
 
-fn apply_velocity(
-    mut query: Query<(&mut Transform, &Velocity), With<Velocity>>,
-    time_step: Res<Time<Fixed>>,
-) {
-    for (mut transform, velocity) in &mut query {
-        // movement
-        transform.translation.x += velocity.x * time_step.delta().as_secs_f32();
-        transform.translation.y += velocity.y * time_step.delta().as_secs_f32();
-        transform.translation.y += CAMERA_SPEED;
-    }
-}
-
 fn check_for_hit(
     mut commands: Commands,
     mut events: EventWriter<PlayerDamageEvent>,
@@ -199,7 +182,6 @@ impl Plugin for BulletPlugin {
             .add_systems(OnEnter(AppState::Ingame), setup)
             .add_systems(Update, (
                 shoot,
-                apply_velocity,
                 check_for_hit,
                 check_for_offscreen,
             ).run_if(in_state(AppState::Ingame)))

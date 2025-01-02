@@ -8,14 +8,12 @@ use crate::{
     Score,
     MyCamera,
 };
-use crate::ingame::{
-    GRID_SIZE,
-    CAMERA_SPEED,
-};
+use crate::ingame::GRID_SIZE;
 use crate::ingame::torpedo::{
     TorpedoDamageEvent,
     Torpedo,
 };
+use crate::ingame::utils::velocity::Velocity;
 
 const PATH_IMAGE: &str = "bevy-2dshooting-game/torpedo-ship.png";
 const SIZE: Vec2 = Vec2::splat(32.0);
@@ -33,9 +31,6 @@ struct ShipImage(Handle<Image>);
 
 #[derive(Resource, Deref, DerefMut, Debug)]
 pub struct ShipCount(usize);
-
-#[derive(Component, Deref, DerefMut)]
-struct Velocity(Vec2);
 
 fn setup(
     mut commands: Commands,
@@ -82,18 +77,6 @@ fn spawn(
         Velocity(direction * SPEED),
     ));
     **count += 1;
-}
-
-fn apply_velocity(
-    mut query: Query<(&mut Transform, &Velocity), With<Torpedo>>,
-    time_step: Res<Time<Fixed>>,
-) {
-    for (mut transform, velocity) in &mut query {
-        // movement
-        transform.translation.x -= velocity.x * time_step.delta().as_secs_f32();
-        transform.translation.y += velocity.y * time_step.delta().as_secs_f32();
-        transform.translation.y += CAMERA_SPEED;
-    }
 }
 
 fn change_direction(
@@ -161,7 +144,6 @@ impl Plugin for ShipPlugin {
             .add_systems(OnEnter(AppState::Ingame), setup)
             .add_systems(Update, (
                 spawn,
-                apply_velocity,
                 change_direction,
                 damage,
                 despawn,
