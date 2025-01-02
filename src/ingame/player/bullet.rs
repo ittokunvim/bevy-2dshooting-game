@@ -24,6 +24,10 @@ use crate::ingame::torpedo::{
     TorpedoDamageEvent,
     Torpedo,
 };
+use crate::ingame::utils::animation_config::{
+    AnimationConfig,
+    AnimationName,
+};
 
 const PATH_IMAGE: &str = "bevy-2dshooting-game/player-bullet.png";
 const IMAGE_SIZE: UVec2 = UVec2::splat(32);
@@ -40,15 +44,6 @@ struct BulletImage(Handle<Image>);
 
 #[derive(Resource, Deref, DerefMut, Debug)]
 struct Remaining(usize);
-
-#[derive(Component)]
-struct AnimationIndices {
-    first: usize,
-    last: usize,
-}
-
-#[derive(Component, Deref, DerefMut)]
-struct AnimationTimer(Timer);
 
 #[derive(Component)]
 struct Bullet;
@@ -83,7 +78,7 @@ fn shoot(
 
     let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
-    let animation_indices = AnimationIndices { first: 0, last: 3, };
+    let animation_config = AnimationConfig::new(AnimationName::Bullet, 0, 3, FPS);
     let Ok(player_transform) = player_query.get_single() else { return };
     let translation = Vec3::new(
         player_transform.translation.x, 
@@ -96,32 +91,15 @@ fn shoot(
             bullet_image.clone(),
             TextureAtlas {
                 layout: texture_atlas_layout,
-                index: animation_indices.first,
+                index: animation_config.first_sprite_index,
             },
         ),
         Transform::from_translation(translation),
-        animation_indices,
-        AnimationTimer(Timer::from_seconds(FPS, TimerMode::Repeating)),
+        animation_config,
         Bullet,
     ));
     // increase remaining bullet
     **remaining -= 1;
-}
-
-fn animation(
-    mut query: Query<(&AnimationIndices, &mut AnimationTimer, &mut Sprite), With<Bullet>>,
-    time: Res<Time>,
-) {
-    for (indices, mut timer, mut sprite) in &mut query {
-        timer.tick(time.delta());
-
-        if timer.just_finished() {
-            if let Some(atlas) = &mut sprite.texture_atlas {
-                atlas.index = if atlas.index == indices.last 
-                    { indices.first } else { atlas.index + 1 }
-            }
-        }
-    }
 }
 
 fn movement(
@@ -240,7 +218,6 @@ impl Plugin for BulletPlugin {
             .add_systems(Update, (
                 event,
                 shoot,
-                animation,
                 movement,
                 check_for_hit_fighter,
                 check_for_hit_torpedo,

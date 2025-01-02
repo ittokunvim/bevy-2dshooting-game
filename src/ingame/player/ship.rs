@@ -13,6 +13,10 @@ use crate::ingame::player::{
     PlayerDamageEvent,
     Player,
 };
+use crate::ingame::utils::animation_config::{
+    AnimationConfig,
+    AnimationName,
+};
 
 const PATH_IMAGE: &str = "bevy-2dshooting-game/player-ship.png";
 const IMAGE_SIZE: UVec2 = UVec2::splat(32);
@@ -24,12 +28,6 @@ const TRANSLATION: Vec3 = Vec3::new(0.0, GRID_SIZE * -12.0, 99.0);
 const SCALE: Vec3 = Vec3::splat(2.0);
 const SPEED: f32 = 256.0;
 
-#[derive(Component)]
-pub struct AnimationIndices {
-    first: usize,
-    last: usize,
-}
-
 fn setup(
     mut commands: Commands,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
@@ -39,7 +37,7 @@ fn setup(
     let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
 
-    let animation_indices = AnimationIndices { first: 0, last: 3, };
+    let animation_indices = AnimationConfig::new(AnimationName::PlayerDamage, 0, 3, 0.0);
     let player = Player { hp: HP, size: SIZE };
     // player ship
     commands.spawn((
@@ -47,7 +45,7 @@ fn setup(
             texture, 
             TextureAtlas {
                 layout: texture_atlas_layout,
-                index: animation_indices.first,
+                index: animation_indices.first_sprite_index,
             },
         ),
         Transform {
@@ -112,24 +110,6 @@ fn damage(
     player.hp -= 1;
 }
 
-fn animation(
-    mut events: EventReader<PlayerDamageEvent>,
-    mut query: Query<(&AnimationIndices, &Player, &mut Sprite), With<Player>>,
-) {
-    if events.is_empty() { return }
-    events.clear();
-
-    let Ok((indices, player, mut sprite)) = query.get_single_mut() else { return };
-    let hp = player.hp;
-    // do animation
-    if hp == 6 || hp == 4 || hp == 2 {
-        if let Some(atlas) = &mut sprite.texture_atlas {
-            atlas.index = if atlas.index == indices.last 
-                { indices.first } else { atlas.index + 1 }
-        }
-    }
-}
-
 fn despawn(
     mut commands: Commands,
     query: Query<(Entity, &Player), With<Player>>,
@@ -154,7 +134,6 @@ impl Plugin for ShipPlugin {
             .add_systems(Update, (
                 movement,
                 damage,
-                animation,
                 despawn,
             ).run_if(in_state(AppState::Ingame)))
         ;

@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+mod utils;
 mod fighter;
 mod player;
 mod torpedo;
@@ -14,6 +15,7 @@ pub struct IngamePlugin;
 impl Plugin for IngamePlugin {
     fn build(&self, app: &mut App) {
         app
+            .add_plugins(utils::UtilsPlugin)
             .add_plugins(fighter::FighterPlugin)
             .add_plugins(player::PlayerPlugin)
             .add_plugins(torpedo::TorpedoPlugin)

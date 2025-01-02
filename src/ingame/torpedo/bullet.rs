@@ -17,6 +17,10 @@ use crate::ingame::player::{
     Player,
 };
 use crate::ingame::torpedo::Torpedo;
+use crate::ingame::utils::animation_config::{
+    AnimationConfig,
+    AnimationName,
+};
 
 const PATH_IMAGE: &str = "bevy-2dshooting-game/torpedo-bullet.png";
 const IMAGE_SIZE: UVec2 = UVec2::new(11, 32);
@@ -30,14 +34,6 @@ const SIZE: Vec2 = Vec2::new(16.5, 48.0);
 #[derive(Resource, Deref)]
 struct BulletImage(Handle<Image>);
 
-#[derive(Component)]
-struct AnimationConfig {
-    pub first_sprite_index: usize,
-    last_sprite_index: usize,
-    fps: f32,
-    frame_timer: Timer,
-}
-
 #[derive(Component, Deref, DerefMut)]
 struct Velocity(Vec2);
 
@@ -45,21 +41,6 @@ struct Velocity(Vec2);
 #[require(Sprite, Transform)]
 struct Bullet {
     size: Vec2,
-}
-
-impl AnimationConfig {
-    pub fn new(first: usize, last: usize, fps: f32) -> Self {
-        Self {
-            first_sprite_index: first,
-            last_sprite_index: last,
-            fps,
-            frame_timer: Self::timer_from_fps(fps),
-        }
-    }
-
-    pub fn timer_from_fps(fps: f32) -> Timer {
-        Timer::from_seconds(fps, TimerMode::Repeating)
-    }
 }
 
 impl Bullet {
@@ -139,7 +120,7 @@ fn shoot(
         let delta_xy = (player_xy - translation.xy()).normalize();
         let degrees = delta_xy.y.atan2(delta_xy.x).to_degrees() - 90.0;
 
-        let animation_config = AnimationConfig::new(0, 2, FPS);
+        let animation_config = AnimationConfig::new(AnimationName::Bullet, 0, 2, FPS);
         let velocity = Velocity(delta_xy * SPEED);
         let bullet = Bullet::new(
             SIZE,
@@ -152,26 +133,6 @@ fn shoot(
         );
         // bullet
         commands.spawn((bullet, animation_config, velocity));
-    }
-}
-
-fn animation(
-    mut query: Query<(&mut AnimationConfig, &mut Sprite), With<AnimationConfig>>,
-    time: Res<Time>,
-) {
-    for (mut config, mut sprite) in &mut query {
-        config.frame_timer.tick(time.delta());
-
-        if config.frame_timer.just_finished() {
-            if let Some(atlas) = &mut sprite.texture_atlas {
-                if atlas.index == config.last_sprite_index {
-                    atlas.index = config.first_sprite_index;
-                } else {
-                    atlas.index += 1;
-                    config.frame_timer = AnimationConfig::timer_from_fps(config.fps);
-                }
-            }
-        }
     }
 }
 
@@ -243,7 +204,6 @@ impl Plugin for BulletPlugin {
             .add_systems(OnEnter(AppState::Ingame), setup)
             .add_systems(Update, (
                 shoot,
-                animation,
                 apply_velocity,
                 check_for_hit,
                 check_for_offscreen,
