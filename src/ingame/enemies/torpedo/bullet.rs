@@ -1,16 +1,14 @@
 use bevy::prelude::*;
 
 use crate::AppState;
-use crate::ingame::{
-    GRID_SIZE,
-    TorpedoShip,
-};
+use crate::ingame::GRID_SIZE;
 use crate::ingame::player::Player;
 use crate::ingame::enemies::bullet::{
     AnimationConfig,
     Velocity,
     Bullet,
 };
+use crate::ingame::enemies::torpedo::Torpedo;
 
 const PATH_IMAGE: &str = "bevy-2dshooting-game/torpedo-bullet.png";
 const IMAGE_SIZE: UVec2 = UVec2::new(11, 32);
@@ -35,8 +33,8 @@ fn setup(
 fn shoot(
     mut commands: Commands,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
-    mut torpedo_query: Query<(&mut TorpedoShip, &Transform), (With<TorpedoShip>, Without<Player>)>,
-    player_query: Query<&Transform, (With<Player>, Without<TorpedoShip>)>,
+    mut torpedo_query: Query<(&mut Torpedo, &Transform), (With<Torpedo>, Without<Player>)>,
+    player_query: Query<&Transform, (With<Player>, Without<Torpedo>)>,
     bullet_image: Res<BulletImage>,
     time: Res<Time>,
 ) {

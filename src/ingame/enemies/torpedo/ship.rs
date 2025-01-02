@@ -13,8 +13,8 @@ use crate::ingame::{
     CAMERA_SPEED,
     TORPEDO_SIZE as SIZE,
     TorpedoDamageEvent,
-    TorpedoShip,
 };
+use crate::ingame::enemies::torpedo::Torpedo;
 
 const PATH_IMAGE: &str = "bevy-2dshooting-game/torpedo-ship.png";
 const HP: usize = 3;
@@ -76,14 +76,14 @@ fn spawn(
             rotation: Quat::from_rotation_z(DEGREES.to_radians()),
             scale: SCALE,
         },
-        TorpedoShip { hp: HP, shoot_timer: Timer::from_seconds(duration, mode) },
+        Torpedo { hp: HP, shoot_timer: Timer::from_seconds(duration, mode) },
         Velocity(direction * SPEED),
     ));
     **count += 1;
 }
 
 fn apply_velocity(
-    mut query: Query<(&mut Transform, &Velocity), With<TorpedoShip>>,
+    mut query: Query<(&mut Transform, &Velocity), With<Torpedo>>,
     time_step: Res<Time<Fixed>>,
 ) {
     for (mut transform, velocity) in &mut query {
@@ -95,7 +95,7 @@ fn apply_velocity(
 }
 
 fn change_direction(
-    mut query: Query<(&mut Velocity, &Transform), With<TorpedoShip>>,
+    mut query: Query<(&mut Velocity, &Transform), With<Torpedo>>,
 ) {
     for (mut velocity, transform) in &mut query {
         let left_window_collision =
@@ -111,7 +111,7 @@ fn change_direction(
 
 pub fn damage(
     mut events: EventReader<TorpedoDamageEvent>,
-    mut query: Query<(Entity, &mut TorpedoShip), With<TorpedoShip>>,
+    mut query: Query<(Entity, &mut Torpedo), With<Torpedo>>,
 ) {
     for event in events.read() {
         let damaged_entity = event.0;
@@ -128,7 +128,7 @@ fn despawn(
     mut commands: Commands,
     mut score: ResMut<Score>,
     mut count: ResMut<ShipCount>,
-    query: Query<(Entity, &TorpedoShip), With<TorpedoShip>>,
+    query: Query<(Entity, &Torpedo), With<Torpedo>>,
 ) {
     for (entity, torpedo) in &query {
         if torpedo.hp <= 0 {
@@ -145,7 +145,7 @@ fn reset_count(mut count: ResMut<ShipCount>) {
 
 fn all_despawn(
     mut commands: Commands,
-    query: Query<Entity, With<TorpedoShip>>,
+    query: Query<Entity, With<Torpedo>>,
 ) {
     for entity in &query { commands.entity(entity).despawn() }
 }
@@ -161,7 +161,7 @@ impl Plugin for ShipPlugin {
                 spawn,
                 apply_velocity,
                 change_direction,
-                // damage, // moved ingame/player/bullet.rs
+                damage,
                 despawn,
             ).run_if(in_state(AppState::Ingame)))
             .add_systems(OnExit(AppState::Ingame), (

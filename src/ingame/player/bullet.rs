@@ -15,15 +15,15 @@ use crate::ingame::{
     TORPEDO_SIZE,
     FighterDamageEvent,
     TorpedoDamageEvent,
-    TorpedoShip,
 };
 use crate::ingame::player::{
     ShootEvent,
     Player,
 };
 use crate::ingame::enemies::fighter::Fighter;
+use crate::ingame::enemies::torpedo::Torpedo;
 
-const PATH_IMAGE_PLAYER_BULLET: &str = "bevy-2dshooting-game/player-bullet.png";
+const PATH_IMAGE: &str = "bevy-2dshooting-game/player-bullet.png";
 const IMAGE_SIZE: UVec2 = UVec2::splat(32);
 const SIZE: Vec2 = Vec2::splat(32.0);
 const COLUMN: u32 = 4;
@@ -55,7 +55,7 @@ fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
-    let handle: Handle<Image> = asset_server.load(PATH_IMAGE_PLAYER_BULLET);
+    let handle: Handle<Image> = asset_server.load(PATH_IMAGE);
     commands.insert_resource(BulletImage(handle));
 }
 
@@ -169,7 +169,7 @@ fn check_for_hit_torpedo(
     mut events: EventWriter<TorpedoDamageEvent>,
     mut remaining: ResMut<Remaining>,
     bullet_query: Query<(Entity, &Transform), (With<Bullet>, Without<Fighter>)>,
-    torpedo_query: Query<(Entity, &Transform), (With<TorpedoShip>, Without<Bullet>)>,
+    torpedo_query: Query<(Entity, &Transform), (With<Torpedo>, Without<Bullet>)>,
 ) {
     for (bullet_entity, bullet_transform) in &bullet_query {
         let bullet_pos = bullet_transform.translation.xy();
@@ -241,12 +241,9 @@ impl Plugin for BulletPlugin {
                 animation,
                 movement,
                 check_for_hit_fighter,
+                check_for_hit_torpedo,
                 check_for_offscreen,
             ).run_if(in_state(AppState::Ingame)))
-            .add_systems(Update, (
-                check_for_hit_torpedo,
-                crate::ingame::enemies::torpedo::ship::damage,
-            ).chain().run_if(in_state(AppState::Ingame)))
             .add_systems(OnExit(AppState::Ingame), (
                 reset_remaining,
                 despawn,

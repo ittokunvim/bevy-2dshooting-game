@@ -19,12 +19,6 @@ struct FighterDamageEvent(Entity);
 #[derive(Event)]
 struct TorpedoDamageEvent(Entity);
 
-#[derive(Component)]
-struct TorpedoShip {
-    hp: usize,
-    shoot_timer: Timer,
-}
-
 pub struct IngamePlugin;
 
 impl Plugin for IngamePlugin {
