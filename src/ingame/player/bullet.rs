@@ -1,40 +1,23 @@
-use bevy::{
-    prelude::*,
-    math::bounding::{Aabb2d, IntersectsVolume},
-};
+use bevy::prelude::*;
 
-use crate::{
-    WINDOW_SIZE,
-    AppState,
-    MyCamera,
-};
+use crate::AppState;
 use crate::ingame::GRID_SIZE;
 use crate::ingame::player::{
     ShootEvent,
     Player,
 };
-use crate::ingame::fighter::{
-    FighterDamageEvent,
-    Fighter,
-};
-use crate::ingame::torpedo::{
-    TorpedoDamageEvent,
-    Torpedo,
-};
-use crate::ingame::utils::animation_config::{
-    AnimationConfig,
-    AnimationName,
-};
-use crate::ingame::utils::velocity::Velocity;
+use crate::ingame::utils::prelude::*;
 
 const PATH_IMAGE: &str = "bevy-2dshooting-game/player-bullet.png";
 const IMAGE_SIZE: UVec2 = UVec2::splat(32);
-const SIZE: Vec2 = Vec2::splat(32.0);
 const COLUMN: u32 = 4;
 const ROW: u32 = 1;
 const DIRECTION: Vec2 = Vec2::new(0.0, 1.0);
 const SPEED: f32 = 512.0;
 const FPS: f32 = 0.1;
+const SIZE: Vec2 = Vec2::splat(32.0);
+const DEGREES: f32 = 0.0;
+const SCALE: Vec3 = Vec3::splat(1.0);
 const KEYCODE: KeyCode = KeyCode::Space;
 const MAX_COUNT: usize = 2;
 
@@ -43,9 +26,6 @@ struct BulletImage(Handle<Image>);
 
 #[derive(Resource, Deref, DerefMut, Debug)]
 struct Remaining(usize);
-
-#[derive(Component)]
-struct Bullet;
 
 fn setup(
     mut commands: Commands,
@@ -86,118 +66,24 @@ fn shoot(
 
     let animation_config = AnimationConfig::new(AnimationName::Bullet, 0, 3, FPS);
     let velocity = Velocity(DIRECTION * SPEED);
+    let bullet = Bullet::new(
+        Shooter::Player, 
+        SIZE, 
+        bullet_image.clone(), 
+        texture_atlas_layout.clone(), 
+        animation_config.first_sprite_index, 
+        translation, 
+        DEGREES, 
+        SCALE,
+    );
     // bullet
-    commands.spawn((
-        Sprite::from_atlas_image(
-            bullet_image.clone(),
-            TextureAtlas {
-                layout: texture_atlas_layout,
-                index: animation_config.first_sprite_index,
-            },
-        ),
-        Transform::from_translation(translation),
-        animation_config,
-        velocity,
-        Bullet,
-    ));
+    commands.spawn((bullet, animation_config, velocity));
     // increase remaining bullet
     **remaining -= 1;
 }
 
-fn check_for_hit_fighter(
-    mut commands: Commands,
-    mut events: EventWriter<FighterDamageEvent>,
-    mut remaining: ResMut<Remaining>,
-    bullet_query: Query<(Entity, &Transform), (With<Bullet>, Without<Fighter>)>,
-    fighter_query: Query<(Entity, &Fighter, &Transform), (With<Fighter>, Without<Bullet>)>,
-) {
-    for (bullet_entity, bullet_transform) in &bullet_query {
-        let bullet_pos = bullet_transform.translation.xy();
-        let mut is_hit_bullet = false;
-
-        for (fighter_entity, fighter, fighter_transform) in &fighter_query {
-            let fighter_pos = fighter_transform.translation.xy();
-            let collision = Aabb2d::new(bullet_pos, SIZE / 2.0)
-                .intersects(&Aabb2d::new(fighter_pos, fighter.size / 2.0));
-
-            if collision {
-                // flag a player bullet hit
-                is_hit_bullet = true;
-                // damage fighter
-                events.send(FighterDamageEvent(fighter_entity));
-            }
-        }
-        if is_hit_bullet {
-            // reduce remaining bullet
-            **remaining += 1;
-            // despawn player bullet
-            commands.entity(bullet_entity).despawn();
-        }
-    }
-}
-
-fn check_for_hit_torpedo(
-    mut commands: Commands,
-    mut events: EventWriter<TorpedoDamageEvent>,
-    mut remaining: ResMut<Remaining>,
-    bullet_query: Query<(Entity, &Transform), (With<Bullet>, Without<Fighter>)>,
-    torpedo_query: Query<(Entity, &Torpedo, &Transform), (With<Torpedo>, Without<Bullet>)>,
-) {
-    for (bullet_entity, bullet_transform) in &bullet_query {
-        let bullet_pos = bullet_transform.translation.xy();
-        let mut is_hit_bullet = false;
-
-        for (torpedo_entity, torpedo, torpedo_transform) in &torpedo_query {
-            let torpedo_pos = torpedo_transform.translation.xy();
-            let collision = Aabb2d::new(bullet_pos, SIZE / 2.0)
-                .intersects(&Aabb2d::new(torpedo_pos, torpedo.size / 2.0));
-
-            if collision {
-                // flag a player bullet hit
-                is_hit_bullet = true;
-                // damage torpedo
-                events.send(TorpedoDamageEvent(torpedo_entity));
-            }
-        }
-        if is_hit_bullet {
-            // reduce remaining bullet
-            **remaining += 1;
-            // despawn player bullet
-            commands.entity(bullet_entity).despawn();
-        }
-    }
-}
-
-fn check_for_offscreen(
-    mut commands: Commands,
-    mut remaining: ResMut<Remaining>,
-    camera_query: Query<&Transform, (With<MyCamera>, Without<Bullet>)>,
-    bullet_query: Query<(Entity, &Transform), (With<Bullet>, Without<MyCamera>)>,
-) {
-    let Ok(camera_transform) = camera_query.get_single() else { return };
-    let camera_y = camera_transform.translation.y;
-
-    for (bullet_entity, bullet_transform) in  &bullet_query {
-        let bullet_y = bullet_transform.translation.y;
-        // check off screen
-        if bullet_y >= camera_y + WINDOW_SIZE.y / 2.0 {
-            // reduce remaining bullet
-            **remaining += 1;
-            // despawn player bullet
-            commands.entity(bullet_entity).despawn();
-        }
-    }
-}
-
 fn reset_remaining(mut remaining: ResMut<Remaining>) {
     **remaining = MAX_COUNT;
-}
-
-fn despawn(
-    mut commands: Commands,
-    query: Query<Entity, With<Bullet>>,
-) {
-    for entity in &query { commands.entity(entity).despawn() }
 }
 
 pub struct BulletPlugin;
@@ -210,14 +96,8 @@ impl Plugin for BulletPlugin {
             .add_systems(Update, (
                 event,
                 shoot,
-                check_for_hit_fighter,
-                check_for_hit_torpedo,
-                check_for_offscreen,
             ).run_if(in_state(AppState::Ingame)))
-            .add_systems(OnExit(AppState::Ingame), (
-                reset_remaining,
-                despawn,
-            ))
+            .add_systems(OnExit(AppState::Ingame), reset_remaining)
         ;
     }
 }

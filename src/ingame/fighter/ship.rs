@@ -14,7 +14,7 @@ use crate::ingame::fighter::{
     ShipDespawnEvent,
     Fighter,
 };
-use crate::ingame::utils::velocity::Velocity;
+use crate::ingame::utils::prelude::*;
 
 const PATH_IMAGE: &str = "bevy-2dshooting-game/fighter-ship.png";
 const SIZE: Vec2 = Vec2::splat(32.0);

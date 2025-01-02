@@ -13,10 +13,7 @@ use crate::ingame::player::{
     PlayerDamageEvent,
     Player,
 };
-use crate::ingame::utils::animation_config::{
-    AnimationConfig,
-    AnimationName,
-};
+use crate::ingame::utils::prelude::*;
 
 const PATH_IMAGE: &str = "bevy-2dshooting-game/player-ship.png";
 const IMAGE_SIZE: UVec2 = UVec2::splat(32);

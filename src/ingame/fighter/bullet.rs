@@ -1,24 +1,9 @@
-use bevy::{
-    prelude::*,
-    math::bounding::{Aabb2d, IntersectsVolume},
-};
+use bevy::prelude::*;
 
-use crate::{
-    WINDOW_SIZE,
-    AppState,
-    MyCamera,
-};
+use crate::AppState;
 use crate::ingame::GRID_SIZE;
-use crate::ingame::player::{
-    PlayerDamageEvent,
-    Player,
-};
 use crate::ingame::fighter::Fighter;
-use crate::ingame::utils::animation_config::{
-    AnimationConfig,
-    AnimationName,
-};
-use crate::ingame::utils::velocity::Velocity;
+use crate::ingame::utils::prelude::*;
 
 const PATH_IMAGE: &str = "bevy-2dshooting-game/fighter-bullet.png";
 const IMAGE_SIZE: UVec2 = UVec2::new(4, 16);
@@ -33,56 +18,6 @@ const SIZE: Vec2 = Vec2::new(8.0, 32.0);
 
 #[derive(Resource, Deref)]
 struct BulletImage(Handle<Image>);
-
-#[derive(Component)]
-#[require(Sprite, Transform)]
-struct Bullet {
-    size: Vec2,
-}
-
-impl Bullet {
-    pub fn new(
-        size: Vec2,
-        image: Handle<Image>,
-        layout: Handle<TextureAtlasLayout>,
-        first_index: usize,
-        translation: Vec3,
-        degrees: f32,
-        scale: Vec3,
-    ) -> (Self, Sprite, Transform) {
-        (
-            Self { size, },
-            Self::sprite(image, layout, first_index),
-            Self::transform(translation, degrees, scale)
-        )
-    }
-
-    fn sprite(
-        image: Handle<Image>,
-        layout: Handle<TextureAtlasLayout>,
-        index: usize,
-    ) -> Sprite {
-        Sprite::from_atlas_image(
-            image,
-            TextureAtlas {
-                layout,
-                index,
-            }
-        )
-    }
-
-    fn transform(
-        translation: Vec3,
-        degrees: f32,
-        scale: Vec3,
-    ) -> Transform {
-        Transform {
-            translation,
-            rotation: Quat::from_rotation_z(degrees.to_radians()),
-            scale,
-        }
-    }
-}
 
 fn setup(
     mut commands: Commands,
@@ -113,6 +48,7 @@ fn shoot(
         let animation_config = AnimationConfig::new(AnimationName::Bullet, 0, 3, FPS);
         let velocity = Velocity(DIRECTION * SPEED);
         let bullet = Bullet::new(
+            Shooter::Fighter,
             SIZE, 
             bullet_image.clone(), 
             texture_atlas_layout.clone(), 
@@ -126,66 +62,13 @@ fn shoot(
     }
 }
 
-fn check_for_hit(
-    mut commands: Commands,
-    mut events: EventWriter<PlayerDamageEvent>,
-    bullet_query: Query<(Entity, &Bullet, &Transform), (With<Bullet>, Without<Player>)>,
-    player_query: Query<(&Transform, &Player), (With<Player>, Without<Bullet>)>,
-) {
-    let Ok((player_transform, player)) = player_query.get_single() else { return };
-    let player_pos = player_transform.translation.xy();
-
-    for (bullet_entity, bullet, bullet_transform) in &bullet_query {
-        let bullet_pos = bullet_transform.translation.xy();
-
-        let collision = Aabb2d::new(bullet_pos, bullet.size / 2.0)
-            .intersects(&Aabb2d::new(player_pos, player.size / 2.0));
-
-        if collision {
-            // damage player
-            events.send_default();
-            // despawn bullet
-            commands.entity(bullet_entity).despawn();
-        }
-    }
-}
-
-fn check_for_offscreen(
-    mut commands: Commands,
-    camera_query: Query<&Transform, (With<MyCamera>, Without<Bullet>)>,
-    bullet_query: Query<(Entity, &Transform), (With<Bullet>, Without<MyCamera>)>,
-) {
-    let Ok(camera_transform) = camera_query.get_single() else { return };
-    let camera_y = camera_transform.translation.y;
-
-    for (bullet_entity, bullet_transform) in &bullet_query {
-        let bullet_y = bullet_transform.translation.y;
-        // check off screen
-        if bullet_y <= camera_y - WINDOW_SIZE.y / 2.0 {
-            commands.entity(bullet_entity).despawn();
-        }
-    }
-}
-
-fn all_despawn(
-    mut commands: Commands,
-    query: Query<Entity, With<Bullet>>,
-) {
-    for entity in &query { commands.entity(entity).despawn() }
-}
-
 pub struct BulletPlugin;
 
 impl Plugin for BulletPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_systems(OnEnter(AppState::Ingame), setup)
-            .add_systems(Update, (
-                shoot,
-                check_for_hit,
-                check_for_offscreen,
-            ).run_if(in_state(AppState::Ingame)))
-            .add_systems(OnExit(AppState::Ingame), all_despawn)
+            .add_systems(Update, shoot.run_if(in_state(AppState::Ingame)))
         ;
     }
 }
