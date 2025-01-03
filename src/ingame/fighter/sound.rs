@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::AppState;
-use crate::ingame::fighter::ShipDespawnEvent;
+use crate::ingame::fighter::FighterDespawnEvent;
 
 const PATH_SOUND_DESPAWN: &str = "sounds/battle-blow-3.ogg";
 
@@ -18,7 +18,7 @@ fn setup(
 }
 
 fn play_shoot_sound(
-    mut events: EventReader<ShipDespawnEvent>,
+    mut events: EventReader<FighterDespawnEvent>,
     mut commands: Commands,
     sound: Res<DespawnSound>,
 ) {

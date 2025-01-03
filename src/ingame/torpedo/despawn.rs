@@ -1,12 +1,12 @@
 use bevy::prelude::*;
 
 use crate::AppState;
-use crate::ingame::fighter::FighterDespawnEvent;
+use crate::ingame::torpedo::TorpedoDespawnEvent;
 use crate::ingame::utils::prelude::*;
 
-const PATH_IMAGE: &str = "bevy-2dshooting-game/fighter-despawn.png";
+const PATH_IMAGE: &str = "bevy-2dshooting-game/torpedo-despawn.png";
 const IMAGE_SIZE: UVec2 = UVec2::splat(64);
-const COLUMN: u32 = 9;
+const COLUMN: u32 = 10;
 const ROW: u32 = 1;
 const FPS: f32 = 0.1;
 
@@ -25,7 +25,7 @@ fn setup(
 fn spawn(
     mut commands: Commands,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
-    mut events: EventReader<FighterDespawnEvent>,
+    mut events: EventReader<TorpedoDespawnEvent>,
     despawn_image: Res<DespawnImage>,
 ) {
     for event in events.read() {
@@ -34,11 +34,11 @@ fn spawn(
         let texture_atlas_layout = texture_atlas_layouts.add(layout);
         let translation = Vec3::new(
             vec2.x, 
-            vec2.y,
+            vec2.y, 
             99.0,
         );
 
-        let animation_config = AnimationConfig::new(AnimationName::Despawn, 0, 8, FPS);
+        let animation_config = AnimationConfig::new(AnimationName::Despawn, 0, 9, FPS);
         // debug!("spawn");
         commands.spawn((
             Sprite::from_atlas_image(

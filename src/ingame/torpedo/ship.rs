@@ -11,6 +11,7 @@ use crate::{
 use crate::ingame::GRID_SIZE;
 use crate::ingame::torpedo::{
     TorpedoDamageEvent,
+    TorpedoDespawnEvent,
     Torpedo,
 };
 use crate::ingame::utils::prelude::*;
@@ -115,13 +116,16 @@ pub fn damage(
 
 fn despawn(
     mut commands: Commands,
+    mut events: EventWriter<TorpedoDespawnEvent>,
     mut score: ResMut<Score>,
     mut count: ResMut<ShipCount>,
-    query: Query<(Entity, &Torpedo), With<Torpedo>>,
+    query: Query<(Entity, &Torpedo, &Transform), With<Torpedo>>,
 ) {
-    for (entity, torpedo) in &query {
+    for (entity, torpedo, transform) in &query {
         if torpedo.hp <= 0 {
             // debug!("despawn");
+            events.send(TorpedoDespawnEvent(transform.translation.xy()));
+            // trace!("send TorpedoDespawnEvent");
             **score += SCORE;
             // trace!("score: {}", **score);
             **count -= 1;
