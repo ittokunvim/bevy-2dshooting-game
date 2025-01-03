@@ -3,6 +3,7 @@ use bevy::prelude::*;
 pub mod ship;
 pub mod bullet;
 mod despawn;
+mod sound;
 
 #[derive(Event)]
 pub struct TorpedoDamageEvent(pub Entity);
@@ -27,6 +28,7 @@ impl Plugin for TorpedoPlugin {
             .add_plugins(bullet::BulletPlugin)
             .add_plugins(ship::ShipPlugin)
             .add_plugins(despawn::DespawnPlugin)
+            .add_plugins(sound::SoundPlugin)
         ;
     }
 }
