@@ -38,7 +38,7 @@ fn main() {
             })
             .set(ImagePlugin::default_nearest())
             .set(LogPlugin {
-                filter: "info,wgpu_core=warn,wgpu_hal=warn,bevy_2dshooting_game=debug".into(),
+                filter: "info,wgpu_core=warn,wgpu_hal=warn,bevy_2dshooting_game=trace".into(),
                 level: bevy::log::Level::DEBUG,
                 ..Default::default()
             })
@@ -57,6 +57,6 @@ fn main() {
 fn setup(
     mut commands: Commands,
 ) {
-    // println!("main: setup");
+    // debug!("setup camera");
     commands.spawn((Camera2d::default(), MyCamera));
 }

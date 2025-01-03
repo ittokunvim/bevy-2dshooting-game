@@ -22,6 +22,7 @@ fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
+    // debug!("setup");
     let handle: Handle<Image> = asset_server.load(PATH_IMAGE);
     commands.insert_resource(BulletImage(handle));
 }
@@ -63,7 +64,7 @@ fn shoot(
             degrees,
             SCALE,
         );
-        // bullet
+        // debug!("shoot");
         commands.spawn((bullet, animation_config, velocity));
     }
 }

@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 
 use crate::AppState;
-
 use crate::ingame::player::Player;
 
 #[derive(Component)]

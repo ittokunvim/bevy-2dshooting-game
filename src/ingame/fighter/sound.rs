@@ -12,7 +12,7 @@ fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
-    // println!("enemy.sound: setup");
+    // debug!("setup");
     let handle = asset_server.load(PATH_SOUND_DESPAWN);
     commands.insert_resource(DespawnSound(handle));
 }
@@ -22,10 +22,9 @@ fn play_shoot_sound(
     mut commands: Commands,
     sound: Res<DespawnSound>,
 ) {
-    // println!("enemy.sound: play_shoot_sound");
     if events.is_empty() { return }
     events.clear();
-    // despawn sound
+    // debug!("play_shoot_sound");
     commands.spawn((
         AudioPlayer(sound.clone()),
         PlaybackSettings::DESPAWN,

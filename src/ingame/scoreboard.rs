@@ -27,6 +27,7 @@ fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
+    // debug!("setup");
     // score
     let (top, left) = (
         Val::Px(TEXT_PADDING),
@@ -97,7 +98,6 @@ fn update_score(
     score: Res<Score>,
     mut query: Query<&mut TextSpan, With<ScoreText>>,
 ) {
-    // println!("scoreboard: update_score");
     let Ok(mut span) = query.get_single_mut() else { return };
     // update score
     **span = score.to_string();
@@ -109,19 +109,20 @@ fn update_life(
 ) {
     let Ok(mut span) = life_query.get_single_mut() else { return };
     let Ok(player) = player_query.get_single() else { return };
-    // update player life
+    // update player hp
     **span = player.hp.to_string();
 }
 
 fn reset_score(mut score: ResMut<Score>) {
+    // debug!("reset_score");
     **score = 0;
 }
 
-fn despawn(
+fn all_despawn(
     mut commands: Commands,
     query: Query<Entity, With<ScoreboardUi>>,
 ) {
-    // println!("scoreboard: despawn");
+    // debug!("all_despawn");
     for entity in &query { commands.entity(entity).despawn() }
 }
 
@@ -135,7 +136,7 @@ impl Plugin for ScoreboardPlugin {
                 update_score,
                 update_life,
             ).run_if(in_state(AppState::Ingame)))
-            .add_systems(OnExit(AppState::Ingame), despawn)
+            .add_systems(OnExit(AppState::Ingame), all_despawn)
             .add_systems(OnExit(AppState::Gameover), reset_score)
         ;
     }

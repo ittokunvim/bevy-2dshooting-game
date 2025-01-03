@@ -37,6 +37,7 @@ fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
+    // debug!("setup");
     let handle: Handle<Image> = asset_server.load(PATH_IMAGE);
     commands.insert_resource(ShipImage(handle));
 }
@@ -65,7 +66,7 @@ fn spawn(
         TimerMode::Repeating,
     );
     let direction = if rand::Rng::gen_bool(&mut rng, 1.0 / 1.0) { DIRECTION } else { -DIRECTION };
-    // ship
+    // debug!("spawn");
     commands.spawn((
         Sprite::from_image(image.clone()),
         Transform {
@@ -77,6 +78,7 @@ fn spawn(
         Velocity(direction * SPEED),
     ));
     **count += 1;
+    // trace!("count: {}", **count);
 }
 
 fn change_direction(
@@ -89,6 +91,7 @@ fn change_direction(
         -WINDOW_SIZE.x / 2.0 > transform.translation.x - fighter.size.x / 4.0;
 
         if left_window_collision || right_window_collision {
+            // trace!("change_direction");
             velocity.x = -velocity.x;
         }
     }
@@ -103,7 +106,9 @@ fn damage(
 
         for (entity, mut fighter) in &mut query {
             if damage_entity == entity {
+                // debug!("damage");
                 fighter.hp -= 1;
+                // trace!("fighter.hp: {}", fighter.hp);
             }
         }
     }
@@ -118,15 +123,20 @@ fn despawn(
 ) {
     for (entity, fighter, transform) in &query {
         if fighter.hp <= 0 {
+            // debug!("despawn");
             events.send(ShipDespawnEvent(transform.translation.xy()));
+            // trace!("send ShipDespawnEvent");
             **score += SCORE;
+            // trace!("score: {}", **score);
             **count -= 1;
+            // trace!("count: {}", **count);
             commands.entity(entity).despawn();
         }
     }
 }
 
 fn reset_count(mut count: ResMut<ShipCount>) {
+    // debug!("reset_count");
     **count = 0;
 }
 
@@ -134,6 +144,7 @@ fn all_despawn(
     mut commands: Commands,
     query: Query<Entity, With<Fighter>>,
 ) {
+    // debug!("all_despawn");
     for entity in &query { commands.entity(entity).despawn() }
 }
 

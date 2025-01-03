@@ -12,7 +12,7 @@ fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
-    // println!("player.sound: setup");
+    // debug!("setup");
     let handle = asset_server.load(PATH_SOUND_SHOOT);
     commands.insert_resource(ShootSound(handle));
 }
@@ -22,10 +22,9 @@ fn play_shoot_sound(
     mut commands: Commands,
     sound: Res<ShootSound>,
 ) {
-    // println!("player.sound: play_shoot_sound");
     if events.is_empty() { return }
     events.clear();
-    // shoot sound
+    // debug!("play_shoot_sound");
     commands.spawn((
         AudioPlayer(sound.clone()),
         PlaybackSettings::DESPAWN,

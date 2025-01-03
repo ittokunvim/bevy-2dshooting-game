@@ -32,7 +32,7 @@ fn setup(
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
     asset_server: Res<AssetServer>,
 ) {
-    // println!("background: setup");
+    // debug!("setup");
     let images = asset_server.load(PATH_IMAGE_BACKGROUND);
 
     for i in 0..MAX_COUNT {
@@ -44,7 +44,7 @@ fn setup(
             WINDOW_SIZE.y * i as f32,
             -99.0,
         );
-
+        // background
         commands.spawn((
             Sprite::from_atlas_image(
                 images.clone(),
@@ -69,12 +69,11 @@ fn animation(
     mut query: Query<(&AnimationIndices, &mut AnimationTimer, &mut Sprite)>,
     time: Res<Time>,
 ) {
-    // println!("background: update");
     for (indices, mut timer, mut sprite) in &mut query {
         timer.tick(time.delta());
+
         if timer.just_finished() {
             if let Some(atlas) = &mut sprite.texture_atlas {
-                // animation
                 atlas.index = if atlas.index == indices.last
                     { indices.first } else { atlas.index + 1 }
             }
@@ -86,17 +85,16 @@ fn check_offscreen(
     mut bg_query: Query<&mut Transform, (With<Mybackground>, Without<MyCamera>)>,
     camera_query: Query<&Transform, (With<MyCamera>, Without<Mybackground>)>,
 ) {
-    // println!("background: check_offscreen");
     let Ok(camera_transform) = camera_query.get_single() else { return };
-    let mut camera_y = camera_transform.translation.y;
-    camera_y = (camera_y / 10.0).round() * 10.0;
+    let camera_y = (camera_transform.translation.y / 10.0).round() * 10.0;
 
     for mut bg_transform in &mut bg_query {
         let bg_y = bg_transform.translation.y;
 
         if bg_y <= camera_y - WINDOW_SIZE.y + 5.0 {
-            // move background y position
+            // debug!("check_offscreen");
             bg_transform.translation.y = camera_y + WINDOW_SIZE.y * 2.0;
+            // trace!("background y: {}", bg_transform.translation.y);
         }
     }
 }
@@ -104,7 +102,7 @@ fn check_offscreen(
 fn reset_position(
     mut query: Query<&mut Transform, With<Mybackground>>
 ) {
-    // println!("background: reset_position");
+    // debug!("reset_position");
     let mut i = 0;
 
     for mut transform in &mut query {

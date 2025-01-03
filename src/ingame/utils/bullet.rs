@@ -9,7 +9,6 @@ use crate::{
     MyCamera,
 };
 use crate::ingame::player::{
-    BULLETS,
     PlayerDamageEvent,
     Player,
 };
@@ -98,6 +97,7 @@ fn check_for_hit_player(
             .intersects(&Aabb2d::new(player_pos, player.size / 2.0));
 
         if collision {
+            // debug!("check_for_hit_player");
             events.send_default();
             commands.entity(bullet_entity).despawn();
         }
@@ -125,7 +125,7 @@ fn check_for_hit_fighter(
 
             if collision {
                 let Ok(mut player) = player_query.get_single_mut() else { return };
-
+                // debug!("check_for_hit_fighter");
                 is_hit_bullet = true;
                 player.bullets += 1;
                 events.send(FighterDamageEvent(fighter_entity));
@@ -157,7 +157,7 @@ fn check_for_hit_torpedo(
 
             if collision {
                 let Ok(mut player) = player_query.get_single_mut() else { return };
-
+                // debug!("check_for_hit_torpedo");
                 is_hit_bullet = true;
                 player.bullets += 1;
                 events.send(TorpedoDamageEvent(torpedo_entity));
@@ -194,6 +194,7 @@ fn check_for_offscreen(
         || bullet_y <= bottom_bound || bullet_y >= top_bound {
             if bullet.shooter == Shooter::Player {
                 let Ok(mut player) = player_query.get_single_mut() else { return };
+                // trace!("player.bullets: {}", player.bullets);
                 player.bullets += 1;
             }
             commands.entity(bullet_entity).despawn();
@@ -201,18 +202,11 @@ fn check_for_offscreen(
     }
 }
 
-fn reset_bullets(
-    mut query: Query<&mut Player, With<Player>>,
-) {
-    let Ok(mut player) = query.get_single_mut() else { return };
-
-    player.bullets = BULLETS;
-}
-
 fn all_despawn(
     mut commands: Commands,
     query: Query<Entity, With<Bullet>>,
 ) {
+    // debug!("all_despawn");
     for entity in &query { commands.entity(entity).despawn() }
 }
 
@@ -227,10 +221,7 @@ impl Plugin for BulletPlugin {
                 check_for_hit_torpedo,
                 check_for_offscreen,
             ).run_if(in_state(AppState::Ingame)))
-            .add_systems(OnExit(AppState::Ingame), (
-                reset_bullets,
-                all_despawn,
-            ))
+            .add_systems(OnExit(AppState::Ingame), all_despawn)
         ;
     }
 }

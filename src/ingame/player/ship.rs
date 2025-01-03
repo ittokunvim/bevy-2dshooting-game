@@ -10,7 +10,6 @@ use crate::ingame::{
     CAMERA_SPEED,
 };
 use crate::ingame::player::{
-    BULLETS,
     PlayerDamageEvent,
     Player,
 };
@@ -20,6 +19,7 @@ const PATH_IMAGE: &str = "bevy-2dshooting-game/player-ship.png";
 const IMAGE_SIZE: UVec2 = UVec2::splat(32);
 const HP: usize = 8;
 const SIZE: Vec2 = Vec2::splat(32.0);
+const BULLETS: usize = 2;
 const COLUMN: u32 = 4;
 const ROW: u32 = 1;
 const TRANSLATION: Vec3 = Vec3::new(0.0, GRID_SIZE * -12.0, 99.0);
@@ -37,7 +37,7 @@ fn setup(
 
     let animation_indices = AnimationConfig::new(AnimationName::PlayerDamage, 0, 3, 0.0);
     let player = Player::new(HP, SIZE, BULLETS);
-    // player ship
+    // debug!("setup");
     commands.spawn((
         Sprite::from_atlas_image(
             texture, 
@@ -104,8 +104,9 @@ fn damage(
     events.clear();
 
     let Ok(mut player) = query.get_single_mut() else { return };
-
+    // debug!("damage");
     player.hp -= 1;
+    // trace!("player.hp: {}", player.hp);
 }
 
 fn despawn(
@@ -116,9 +117,9 @@ fn despawn(
     let Ok((entity, player)) = query.get_single() else { return };
 
     if player.hp <= 0 {
-        // despawn ship
+        // debug!("despawn");
         commands.entity(entity).despawn();
-        // moved app state Ingame -> Gameover
+        // trace!("AppState Ingame -> Gameover");
         next_state.set(AppState::Gameover);
     }
 }

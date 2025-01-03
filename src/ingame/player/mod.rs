@@ -4,8 +4,6 @@ pub mod ship;
 mod bullet;
 mod sound;
 
-pub const BULLETS: usize = 2;
-
 #[derive(Event, Default)]
 struct ShootEvent;
 

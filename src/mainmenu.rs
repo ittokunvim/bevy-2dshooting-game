@@ -21,7 +21,7 @@ fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
-    // println!("mainmenu: setup");
+    // debug!("setup");
     // game title
     let (x, y, z) = (
         0.0,
@@ -79,17 +79,16 @@ fn update(
     mut next_state: ResMut<NextState<AppState>>,
     mouse_events: Res<ButtonInput<MouseButton>>,
 ) {
-    // println!("mainmenu: update");
     if !mouse_events.just_pressed(MouseButton::Left) { return }
-    // AppState Mainmenu -> Ingame
+    // trace!("AppState Mainmenu -> Ingame");
     next_state.set(AppState::Ingame);
 }
 
-fn despawn(
+fn all_despawn(
     mut commands: Commands,
     query: Query<Entity, With<Mainmenu>>,
 ) {
-    // println!("mainmenu: despawn");
+    // debug!("all_despawn");
     for entity in query.iter() { commands.entity(entity).despawn() }
 }
 
@@ -100,7 +99,7 @@ impl Plugin for MainmenuPlugin {
         app
             .add_systems(OnEnter(AppState::Mainmenu), setup)
             .add_systems(Update, update.run_if(in_state(AppState::Mainmenu)))
-            .add_systems(OnExit(AppState::Mainmenu), despawn)
+            .add_systems(OnExit(AppState::Mainmenu), all_despawn)
         ;
     }
 }

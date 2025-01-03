@@ -27,7 +27,7 @@ fn setup(
     camera_query: Query<&Transform, With<MyCamera>>,
     score: Res<Score>,
 ) {
-    // println!("gameover: setup");
+    // debug!("setup");
     let Ok(camera_transform) = camera_query.get_single() else { return };
     let camera_y = camera_transform.translation.y;
     // game over
@@ -119,21 +119,25 @@ fn update(
     mut next_state: ResMut<NextState<AppState>>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
 ) {
-    // println!("gameover: update");
+    let mut closure = |app_state: AppState| {
+        // trace!("AppState Gameover -> {:?}", app_state);
+        next_state.set(app_state);
+    };
+
     for key in keyboard_input.get_just_pressed() {
         match key {
-            KeyCode::KeyR => next_state.set(AppState::Ingame),
-            KeyCode::KeyB => next_state.set(AppState::Mainmenu),
+            KeyCode::KeyR => closure(AppState::Ingame),
+            KeyCode::KeyB => closure(AppState::Mainmenu),
             _ => {},
         }
     }
 }
 
-fn despawn(
+fn all_despawn(
     mut commands: Commands,
     query: Query<Entity, With<Gameover>>,
 ) {
-    // println!("gameover: despawn");
+    // debug!("all_despawn");
     for entity in &query { commands.entity(entity).despawn() }
 }
 
@@ -144,7 +148,7 @@ impl Plugin for GameoverPlugin {
         app
             .add_systems(OnEnter(AppState::Gameover), setup)
             .add_systems(Update, update.run_if(in_state(AppState::Gameover)))
-            .add_systems(OnExit(AppState::Gameover), despawn)
+            .add_systems(OnExit(AppState::Gameover), all_despawn)
         ;
     }
 }

@@ -17,6 +17,7 @@ fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
+    // debug!("setup");
     let handle: Handle<Image> = asset_server.load(PATH_IMAGE);
     commands.insert_resource(DespawnImage(handle));
 }
@@ -38,7 +39,7 @@ fn spawn(
         );
 
         let animation_config = AnimationConfig::new(AnimationName::Despawn, 0, 8, FPS);
-        // despawn animation
+        // debug!("spawn");
         commands.spawn((
             Sprite::from_atlas_image(
                 despawn_image.clone(), 

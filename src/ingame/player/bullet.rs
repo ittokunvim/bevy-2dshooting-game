@@ -27,6 +27,7 @@ fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
+    // debug!("setup");
     let handle: Handle<Image> = asset_server.load(PATH_IMAGE);
     commands.insert_resource(BulletImage(handle));
 }
@@ -36,7 +37,7 @@ fn event(
     keyboard_input: Res<ButtonInput<KeyCode>>,
 ) {
     if !keyboard_input.just_pressed(KEYCODE) { return }
-    // send shoot event
+    // debug!("event");
     events.send_default();
 }
 
@@ -73,9 +74,10 @@ fn shoot(
         DEGREES, 
         SCALE,
     );
-    // bullet
+    // debug!("shoot");
     commands.spawn((bullet, animation_config, velocity));
     player.bullets -= 1;
+    // trace!("player.bullets: {}", player.bullets);
 }
 
 pub struct BulletPlugin;

@@ -65,7 +65,7 @@ fn spawn(
         TimerMode::Repeating,
     );
     let direction = if rand::Rng::gen_bool(&mut rng, 1.0 / 1.0) { DIRECTION } else { -DIRECTION };
-    // ship
+    // debug!("spawn");
     commands.spawn((
         Sprite::from_image(image.clone()),
         Transform {
@@ -77,6 +77,7 @@ fn spawn(
         Velocity(direction * SPEED),
     ));
     **count += 1;
+    // trace!("count: {}", **count);
 }
 
 fn change_direction(
@@ -89,6 +90,7 @@ fn change_direction(
         -WINDOW_SIZE.x / 2.0 > transform.translation.x - SIZE.x / 4.0;
 
         if left_window_collision || right_window_collision {
+            // trace!("change_direction");
             velocity.x = -velocity.x;
         }
     }
@@ -103,7 +105,9 @@ pub fn damage(
 
         for (entity, mut torpedo) in &mut query {
             if damaged_entity == entity {
+                // debug!("damage");
                 torpedo.hp -= 1;
+                // trace!("torpedo.hp: {}", torpedo.hp);
             }
         }
     }
@@ -117,14 +121,18 @@ fn despawn(
 ) {
     for (entity, torpedo) in &query {
         if torpedo.hp <= 0 {
+            // debug!("despawn");
             **score += SCORE;
+            // trace!("score: {}", **score);
             **count -= 1;
+            // trace!("count: {}", **count);
             commands.entity(entity).despawn();
         }
     }
 }
 
 fn reset_count(mut count: ResMut<ShipCount>) {
+    // debug!("reset_count");
     **count = 0;
 }
 
@@ -132,6 +140,7 @@ fn all_despawn(
     mut commands: Commands,
     query: Query<Entity, With<Torpedo>>,
 ) {
+    // debug!("all_spawn");
     for entity in &query { commands.entity(entity).despawn() }
 }
 
