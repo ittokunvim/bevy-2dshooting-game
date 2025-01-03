@@ -9,7 +9,7 @@ mod despawn;
 pub struct FighterDamageEvent(pub Entity);
 
 #[derive(Event)]
-pub struct ShipDespawnEvent(Vec2);
+pub struct FighterDespawnEvent(Vec2);
 
 #[derive(Component)]
 pub struct Fighter {
@@ -24,7 +24,7 @@ impl Plugin for FighterPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_event::<FighterDamageEvent>()
-            .add_event::<ShipDespawnEvent>()
+            .add_event::<FighterDespawnEvent>()
             .add_plugins(ship::ShipPlugin)
             .add_plugins(bullet::BulletPlugin)
             .add_plugins(sound::SoundPlugin)

@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::AppState;
-use crate::ingame::fighter::ShipDespawnEvent;
+use crate::ingame::fighter::FighterDespawnEvent;
 use crate::ingame::utils::prelude::*;
 
 const PATH_IMAGE: &str = "bevy-2dshooting-game/fighter-despawn.png";
@@ -25,7 +25,7 @@ fn setup(
 fn spawn(
     mut commands: Commands,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
-    mut events: EventReader<ShipDespawnEvent>,
+    mut events: EventReader<FighterDespawnEvent>,
     despawn_image: Res<DespawnImage>,
 ) {
     for event in events.read() {

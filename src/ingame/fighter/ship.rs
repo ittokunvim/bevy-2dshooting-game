@@ -11,7 +11,7 @@ use crate::{
 use crate::ingame::GRID_SIZE;
 use crate::ingame::fighter::{
     FighterDamageEvent,
-    ShipDespawnEvent,
+    FighterDespawnEvent,
     Fighter,
 };
 use crate::ingame::utils::prelude::*;
@@ -116,7 +116,7 @@ fn damage(
 
 fn despawn(
     mut commands: Commands,
-    mut events: EventWriter<ShipDespawnEvent>,
+    mut events: EventWriter<FighterDespawnEvent>,
     mut score: ResMut<Score>,
     mut count: ResMut<ShipCount>,
     query: Query<(Entity, &Fighter, &Transform), With<Fighter>>,
@@ -124,7 +124,7 @@ fn despawn(
     for (entity, fighter, transform) in &query {
         if fighter.hp <= 0 {
             // debug!("despawn");
-            events.send(ShipDespawnEvent(transform.translation.xy()));
+            events.send(FighterDespawnEvent(transform.translation.xy()));
             // trace!("send ShipDespawnEvent");
             **score += SCORE;
             // trace!("score: {}", **score);
