@@ -1,9 +1,9 @@
 use bevy::prelude::*;
 
 use crate::AppState;
-use crate::ingame::fighter::FighterDespawnEvent;
+use crate::ingame::torpedo::TorpedoDespawnEvent;
 
-const PATH_SOUND: &str = "sounds/battle-blow-3.ogg";
+const PATH_SOUND: &str = "sounds/battle-blow-4.ogg";
 
 #[derive(Resource, Deref)]
 struct DespawnSound(Handle<AudioSource>);
@@ -17,8 +17,9 @@ fn setup(
     commands.insert_resource(DespawnSound(handle));
 }
 
+
 fn play_despawn_sound(
-    mut events: EventReader<FighterDespawnEvent>,
+    mut events: EventReader<TorpedoDespawnEvent>,
     mut commands: Commands,
     sound: Res<DespawnSound>,
 ) {
