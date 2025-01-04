@@ -124,14 +124,16 @@ fn check_for_hit_fighter(
                 .intersects(&Aabb2d::new(fighter_pos, fighter.size / 2.0));
 
             if collision {
-                let Ok(mut player) = player_query.get_single_mut() else { return };
                 // debug!("check_for_hit_fighter");
                 is_hit_bullet = true;
-                player.bullets += 1;
                 events.send(FighterDamageEvent(fighter_entity));
             }
         }
         if is_hit_bullet {
+            let Ok(mut player) = player_query.get_single_mut() else { return };
+
+            player.bullets += 1;
+            // trace!("player.bullets: {}", player.bullets);
             commands.entity(bullet_entity).despawn();
         }
     }
@@ -156,14 +158,16 @@ fn check_for_hit_torpedo(
                 .intersects(&Aabb2d::new(torpedo_pos, torpedo.size / 2.0));
 
             if collision {
-                let Ok(mut player) = player_query.get_single_mut() else { return };
                 // debug!("check_for_hit_torpedo");
                 is_hit_bullet = true;
-                player.bullets += 1;
                 events.send(TorpedoDamageEvent(torpedo_entity));
             }
         }
         if is_hit_bullet {
+            let Ok(mut player) = player_query.get_single_mut() else { return };
+
+            player.bullets += 1;
+            // trace!("player.bullets: {}", player.bullets);
             commands.entity(bullet_entity).despawn();
         }
     }
@@ -194,8 +198,9 @@ fn check_for_offscreen(
         || bullet_y <= bottom_bound || bullet_y >= top_bound {
             if bullet.shooter == Shooter::Player {
                 let Ok(mut player) = player_query.get_single_mut() else { return };
-                // trace!("player.bullets: {}", player.bullets);
+                // debug!("check_for_offscreen");
                 player.bullets += 1;
+                // trace!("player.bullets: {}", player.bullets);
             }
             commands.entity(bullet_entity).despawn();
         }
