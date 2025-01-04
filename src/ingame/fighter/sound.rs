@@ -1,9 +1,9 @@
 use bevy::prelude::*;
 
 use crate::AppState;
-use crate::ingame::fighter::FighterDespawnEvent;
+use crate::ingame::fighter::FighterDamageEvent;
 
-const PATH_SOUND: &str = "sounds/battle-blow-3.ogg";
+const PATH_SOUND: &str = "sounds/battle-shooting-hit.ogg";
 
 #[derive(Resource, Deref)]
 struct DespawnSound(Handle<AudioSource>);
@@ -17,14 +17,14 @@ fn setup(
     commands.insert_resource(DespawnSound(handle));
 }
 
-fn play_despawn_sound(
-    mut events: EventReader<FighterDespawnEvent>,
+fn play_damage_sound(
+    mut events: EventReader<FighterDamageEvent>,
     mut commands: Commands,
     sound: Res<DespawnSound>,
 ) {
     if events.is_empty() { return }
     events.clear();
-    // debug!("play_despawn_sound");
+    // debug!("play_damage_sound");
     commands.spawn((
         AudioPlayer(sound.clone()),
         PlaybackSettings::DESPAWN,
@@ -37,7 +37,7 @@ impl Plugin for SoundPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_systems(OnEnter(AppState::Ingame), setup)
-            .add_systems(Update, play_despawn_sound.run_if(in_state(AppState::Ingame)))
+            .add_systems(Update, play_damage_sound.run_if(in_state(AppState::Ingame)))
         ;
     }
 }
