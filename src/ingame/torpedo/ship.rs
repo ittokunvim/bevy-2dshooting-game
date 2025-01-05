@@ -19,7 +19,6 @@ use crate::ingame::utils::prelude::*;
 const PATH_IMAGE: &str = "bevy-2dshooting-game/torpedo-ship.png";
 const SIZE: Vec2 = Vec2::splat(32.0);
 const HP: usize = 3;
-const SCORE: usize = 30;
 const DEGREES: f32 = 180.0;
 const SCALE: Vec3 = Vec3::splat(1.0);
 const DIRECTION: Vec2 = Vec2::new(1.0, 0.0);
@@ -48,7 +47,7 @@ fn spawn(
     score: Res<Score>,
     query: Query<&Transform, With<MyCamera>>,
 ) {
-    if **score == 0 || **score % 100 != 0 { return }
+    if score.fighter == 0 || score.fighter % 10 != 0 { return }
     if **count >= MAX_COUNT { return }
 
     let mut rng = rand::thread_rng();
@@ -126,8 +125,8 @@ fn despawn(
             // debug!("despawn");
             events.send(TorpedoDespawnEvent(transform.translation.xy()));
             // trace!("send TorpedoDespawnEvent");
-            **score += SCORE;
-            // trace!("score: {}", **score);
+            score.torpedo += 1;
+            // trace!("score.torpedo: {}", score.torpedo);
             **count -= 1;
             // trace!("count: {}", **count);
             commands.entity(entity).despawn();
