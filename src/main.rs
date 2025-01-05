@@ -12,6 +12,9 @@ const GAMETITLE: &str = "2Dシューティングゲーム";
 const WINDOW_SIZE: Vec2 = Vec2::new(640.0, 480.0);
 const PATH_FONT: &str = "fonts/misaki_gothic.ttf";
 
+const SCORE_FIGHTER: usize = 10;
+const SCORE_TORPEDO: usize = 50;
+
 #[derive(States, Debug, Clone, PartialEq, Eq, Hash)]
 enum AppState {
     Mainmenu,
@@ -19,11 +22,31 @@ enum AppState {
     Gameover,
 }
 
-#[derive(Resource, Deref, DerefMut)]
-struct Score(usize);
+#[derive(Resource)]
+struct Score {
+    fighter: usize,
+    torpedo: usize,
+}
 
 #[derive(Component)]
 struct MyCamera;
+
+impl Score {
+    fn new() -> Self {
+        Self { fighter: 0, torpedo: 0, }
+    }
+
+    fn sum(&self) -> usize {
+        let score_fighter = SCORE_FIGHTER * self.fighter;
+        let score_torpedo = SCORE_TORPEDO * self.torpedo;
+
+        score_fighter + score_torpedo
+    }
+
+    fn reset() -> Self {
+        Self::new()
+    }
+}
 
 fn main() {
     App::new()
@@ -44,7 +67,7 @@ fn main() {
             })
         )
         .insert_state(AppState::Mainmenu)
-        .insert_resource(Score(0))
+        .insert_resource(Score::new())
         .insert_resource(Time::<Fixed>::from_seconds(1.0 / 60.0))
         .add_systems(Startup, setup)
         .add_plugins(background::BackgroundPlugin)

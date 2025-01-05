@@ -100,7 +100,7 @@ fn update_score(
 ) {
     let Ok(mut span) = query.get_single_mut() else { return };
     // update score
-    **span = score.to_string();
+    **span = score.sum().to_string();
 }
 
 fn update_life(
@@ -115,7 +115,7 @@ fn update_life(
 
 fn reset_score(mut score: ResMut<Score>) {
     // debug!("reset_score");
-    **score = 0;
+    *score = Score::reset();
 }
 
 fn all_despawn(

@@ -54,7 +54,7 @@ fn setup(
         0.0,
     );
     commands.spawn((
-        Text2d::new(format!("{}{}", SCORE_TEXT, **score)),
+        Text2d::new(format!("{}{}", SCORE_TEXT, score.sum())),
         TextFont {
             font: asset_server.load(PATH_FONT),
             font_size: TEXT_SIZE,

@@ -19,7 +19,6 @@ use crate::ingame::utils::prelude::*;
 const PATH_IMAGE: &str = "bevy-2dshooting-game/fighter-ship.png";
 const SIZE: Vec2 = Vec2::splat(32.0);
 const HP: usize = 1;
-const SCORE: usize = 10;
 const DEGREES: f32 = 180.0;
 const SCALE: Vec3 = Vec3::splat(1.0);
 const DIRECTION: Vec2 = Vec2::new(1.0, -0.05);
@@ -126,8 +125,8 @@ fn despawn(
             // debug!("despawn");
             events.send(FighterDespawnEvent(transform.translation.xy()));
             // trace!("send ShipDespawnEvent");
-            **score += SCORE;
-            // trace!("score: {}", **score);
+            score.fighter += 1;
+            // trace!("score.fighter: {}", score.fighter);
             **count -= 1;
             // trace!("count: {}", **count);
             commands.entity(entity).despawn();
