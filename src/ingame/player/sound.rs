@@ -1,7 +1,10 @@
 use bevy::prelude::*;
 
 use crate::AppState;
-use crate::ingame::player::ShootEvent;
+use crate::ingame::player::{
+    ShootEvent,
+    Player,
+};
 
 const PATH_SOUND_SHOOT: &str = "sounds/battle-shooting-1.ogg";
 
@@ -21,10 +24,15 @@ fn play_shoot_sound(
     mut events: EventReader<ShootEvent>,
     mut commands: Commands,
     sound: Res<ShootSound>,
+    query: Query<&Player, With<Player>>,
 ) {
     if events.is_empty() { return }
     events.clear();
-    // debug!("play_shoot_sound");
+
+    let Ok(player) = query.get_single() else { return };
+
+    if player.bullets <= 0 { return }
+    debug!("play_shoot_sound");
     commands.spawn((
         AudioPlayer(sound.clone()),
         PlaybackSettings::DESPAWN,
