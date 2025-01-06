@@ -10,6 +10,7 @@ use crate::ingame::player::Player;
 
 const SCORE_TEXT: &str = "スコア: ";
 const LIFE_TEXT: &str = "ライフ: ";
+// const PATH_IMAGE_HP: &str = "images/hp-heart.png";
 const TEXT_SIZE: f32 = 20.0;
 const TEXT_COLOR: Color = Color::srgb(0.9, 0.9, 0.9);
 const TEXT_PADDING: f32 = 5.0;
