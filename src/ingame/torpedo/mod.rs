@@ -11,6 +11,9 @@ pub struct TorpedoDamageEvent(pub Entity);
 #[derive(Event)]
 pub struct TorpedoDespawnEvent(Vec2);
 
+#[derive(Event, Default)]
+struct TorpedoSpawnEvent;
+
 #[derive(Component)]
 pub struct Torpedo {
     pub size: Vec2,
@@ -25,6 +28,7 @@ impl Plugin for TorpedoPlugin {
         app
             .add_event::<TorpedoDamageEvent>()
             .add_event::<TorpedoDespawnEvent>()
+            .add_event::<TorpedoSpawnEvent>()
             .add_plugins(bullet::BulletPlugin)
             .add_plugins(ship::ShipPlugin)
             .add_plugins(despawn::DespawnPlugin)

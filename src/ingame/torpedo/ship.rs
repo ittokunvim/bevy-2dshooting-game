@@ -9,6 +9,7 @@ use crate::{
     MyCamera,
 };
 use crate::ingame::GRID_SIZE;
+use crate::ingame::fighter::FighterDespawnEvent;
 use crate::ingame::torpedo::{
     TorpedoDamageEvent,
     TorpedoDespawnEvent,
@@ -23,14 +24,10 @@ const DEGREES: f32 = 180.0;
 const SCALE: Vec3 = Vec3::splat(1.0);
 const DIRECTION: Vec2 = Vec2::new(1.0, 0.0);
 const SPEED: f32 = 128.0;
-const MAX_COUNT: usize = 1;
 const TIMER_RANGE: Range<f32> = 1.5..2.0;
 
 #[derive(Resource, Deref)]
 struct ShipImage(Handle<Image>);
-
-#[derive(Resource, Deref, DerefMut, Debug)]
-pub struct ShipCount(usize);
 
 fn setup(
     mut commands: Commands,
@@ -42,13 +39,14 @@ fn setup(
 
 fn spawn(
     mut commands: Commands,
-    mut count: ResMut<ShipCount>,
+    mut events: EventReader<FighterDespawnEvent>,
     image: Res<ShipImage>,
     score: Res<Score>,
     query: Query<&Transform, With<MyCamera>>,
 ) {
-    if score.fighter == 0 || score.fighter % 10 != 0 { return }
-    if **count >= MAX_COUNT { return }
+    if events.is_empty() { return }
+    events.clear();
+    if score.fighter % 10 != 0 { return }
 
     let mut rng = rand::thread_rng();
     let Ok(camera_transform) = query.get_single() else { return };
@@ -76,8 +74,6 @@ fn spawn(
         Torpedo { size: SIZE, hp: HP, shoot_timer: Timer::from_seconds(duration, mode) },
         Velocity(direction * SPEED),
     ));
-    **count += 1;
-    // trace!("count: {}", **count);
 }
 
 fn change_direction(
@@ -117,7 +113,6 @@ fn despawn(
     mut commands: Commands,
     mut events: EventWriter<TorpedoDespawnEvent>,
     mut score: ResMut<Score>,
-    mut count: ResMut<ShipCount>,
     query: Query<(Entity, &Torpedo, &Transform), With<Torpedo>>,
 ) {
     for (entity, torpedo, transform) in &query {
@@ -127,16 +122,9 @@ fn despawn(
             // trace!("send TorpedoDespawnEvent");
             score.torpedo += 1;
             // trace!("score.torpedo: {}", score.torpedo);
-            **count -= 1;
-            // trace!("count: {}", **count);
             commands.entity(entity).despawn();
         }
     }
-}
-
-fn reset_count(mut count: ResMut<ShipCount>) {
-    // debug!("reset_count");
-    **count = 0;
 }
 
 fn all_despawn(
@@ -152,7 +140,6 @@ pub struct ShipPlugin;
 impl Plugin for ShipPlugin {
     fn build(&self, app: &mut App) {
         app
-            .insert_resource(ShipCount(0))
             .add_systems(OnEnter(AppState::Ingame), setup)
             .add_systems(Update, (
                 spawn,
@@ -161,7 +148,6 @@ impl Plugin for ShipPlugin {
                 despawn,
             ).run_if(in_state(AppState::Ingame)))
             .add_systems(OnExit(AppState::Ingame), (
-                reset_count,
                 all_despawn,
             ))
         ;
