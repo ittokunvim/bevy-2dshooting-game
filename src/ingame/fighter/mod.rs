@@ -2,8 +2,11 @@ use bevy::prelude::*;
 
 pub mod ship;
 pub mod bullet;
+
 mod sound;
 mod despawn;
+
+pub const PATH_IMAGE_FIGHTER: &str = "bevy-2dshooting-game/fighter-ship.png";
 
 #[derive(Event)]
 pub struct FighterDamageEvent(pub Entity);

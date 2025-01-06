@@ -10,14 +10,14 @@ use crate::{
 };
 use crate::ingame::GRID_SIZE;
 use crate::ingame::torpedo::{
+    PATH_IMAGE_TORPEDO as PATH_IMAGE,
     TorpedoDamageEvent,
     TorpedoDespawnEvent,
     Torpedo,
 };
 use crate::ingame::utils::prelude::*;
 
-const PATH_IMAGE: &str = "bevy-2dshooting-game/torpedo-ship.png";
-const SIZE: Vec2 = Vec2::splat(32.0);
+const SIZE: Vec2 = Vec2::new(128.0, 32.0);
 const HP: usize = 3;
 const DEGREES: f32 = 180.0;
 const SCALE: Vec3 = Vec3::splat(1.0);
