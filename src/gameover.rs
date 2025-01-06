@@ -6,10 +6,14 @@ use crate::{
     Score,
     MyCamera,
 };
+use crate::ingame::fighter::PATH_IMAGE_FIGHTER;
+use crate::ingame::torpedo::PATH_IMAGE_TORPEDO;
 
 const GAMEOVER_TEXT: &str = "ゲームオーバー";
-const GAMEOVER_SIZE: f32 = 32.0;
+const GAMEOVER_SIZE: f32 = 20.0;
 const SCORE_TEXT: &str = "スコア: ";
+const FIGHTER_SCALE: Vec3 = Vec3::splat(0.75);
+const TORPEDO_SCALE: Vec3 = Vec3::new(0.5, 0.75, 0.0);
 const RETRY_TEXT: &str = "リトライ: Key[R]";
 const BACKTOTITLE_TEXT: &str = "タイトルに戻る: Key[B]";
 const BOARD_SIZE: Vec2 = Vec2::new(360.0, 270.0);
@@ -19,7 +23,46 @@ const TEXT_SIZE: f32 = 16.0;
 const TEXT_PADDING: f32 = 50.0;
 
 #[derive(Component)]
+#[require(Text2d, TextFont, TextColor, Transform)]
 struct Gameover;
+
+impl Gameover {
+    fn new(
+        text: String,
+        font: Handle<Font>,
+        font_size: f32,
+        color: Color,
+        translation: Vec3,
+    ) -> (Self, Text2d, TextFont, TextColor, Transform) {
+        (
+            Self,
+            Text2d::new(text),
+            TextFont {
+                font,
+                font_size,
+                ..Default::default()
+            },
+            TextColor(color),
+            Transform::from_translation(translation),
+        )
+    }
+
+    fn from_image(
+        image: Handle<Image>,
+        translation: Vec3,
+        scale: Vec3,
+    ) -> (Self, Sprite, Transform) {
+        (
+            Self,
+            Sprite::from_image(image),
+            Transform {
+                translation,
+                scale,
+                ..Default::default()
+            }
+        )
+    }
+}
 
 fn setup(
     mut commands: Commands,
@@ -30,73 +73,100 @@ fn setup(
     // debug!("setup");
     let Ok(camera_transform) = camera_query.get_single() else { return };
     let camera_y = camera_transform.translation.y;
+    let font = asset_server.load(PATH_FONT);
     // game over
-    let (x, y, z) = (
+    let translation = Vec3::new(
         0.0,
-        camera_y + TEXT_PADDING * 1.5,
+        camera_y + TEXT_PADDING * 2.0,
         0.0,
     );
-    commands.spawn((
-        Text2d::new(GAMEOVER_TEXT),
-        TextFont {
-            font: asset_server.load(PATH_FONT),
-            font_size: GAMEOVER_SIZE,
-            ..Default::default()
-        },
-        TextColor(TEXT_COLOR),
-        Transform::from_xyz(x, y, z),
-        Gameover,
+    commands.spawn(Gameover::new(
+        GAMEOVER_TEXT.to_string(), 
+        font.clone(),
+        GAMEOVER_SIZE, 
+        TEXT_COLOR, 
+        translation,
     ));
     // score
-    let (x, y, z) = (
+    let translation = Vec3::new(
         0.0,
+        camera_y + TEXT_PADDING * 1.0,
+        0.0,
+    );
+    commands.spawn(Gameover::new(
+        format!("{}{}", SCORE_TEXT, score.sum()), 
+        font.clone(),
+        TEXT_SIZE, 
+        TEXT_COLOR, 
+        translation,
+    ));
+    // fighter image
+    let image = asset_server.load(PATH_IMAGE_FIGHTER);
+    let translation = Vec3::new(
+        -TEXT_PADDING * 1.0,
+        camera_y + TEXT_PADDING * 0.5, 
+        0.0,
+    );
+    commands.spawn(Gameover::from_image(image, translation, FIGHTER_SCALE));
+    // fighter score
+    let translation = Vec3::new(
+        TEXT_PADDING * 0.2,
         camera_y + TEXT_PADDING * 0.5,
         0.0,
     );
-    commands.spawn((
-        Text2d::new(format!("{}{}", SCORE_TEXT, score.sum())),
-        TextFont {
-            font: asset_server.load(PATH_FONT),
-            font_size: TEXT_SIZE,
-            ..Default::default()
-        },
-        TextColor(TEXT_COLOR),
-        Transform::from_xyz(x, y, z),
-        Gameover,
+    commands.spawn(Gameover::new(
+        format!(" x {} ({})", score.fighter, score.sum_fighter()), 
+        font.clone(),
+        TEXT_SIZE, 
+        TEXT_COLOR, 
+        translation,
+    ));
+    // torpedo image
+    let image = asset_server.load(PATH_IMAGE_TORPEDO);
+    let translation = Vec3::new(
+        -TEXT_PADDING * 1.0,
+        camera_y - TEXT_PADDING * 0.0,
+        0.0,
+    );
+    commands.spawn(Gameover::from_image(image, translation, TORPEDO_SCALE));
+    // torpedo score
+    let translation = Vec3::new(
+        TEXT_PADDING * 0.2,
+        camera_y - TEXT_PADDING * 0.0,
+        0.0,
+    );
+    commands.spawn(Gameover::new(
+        format!(" x {} ({})", score.torpedo, score.sum_torpedo()), 
+        font.clone(),
+        TEXT_SIZE, 
+        TEXT_COLOR, 
+        translation,
     ));
     // retry
-    let (x, y, z) = (
+    let translation = Vec3::new(
         0.0,
-        camera_y - TEXT_PADDING * 0.5,
+        camera_y - TEXT_PADDING * 1.0,
         0.0,
     );
-    commands.spawn((
-        Text2d::new(RETRY_TEXT),
-        TextFont {
-            font: asset_server.load(PATH_FONT),
-            font_size: TEXT_SIZE,
-            ..Default::default()
-        },
-        TextColor(TEXT_COLOR),
-        Transform::from_xyz(x, y, z),
-        Gameover,
+    commands.spawn(Gameover::new(
+        RETRY_TEXT.to_string(), 
+        font.clone(),
+        TEXT_SIZE, 
+        TEXT_COLOR, 
+        translation,
     ));
     // back to title
-    let (x, y, z) = (
+    let translation = Vec3::new(
         0.0,
-        camera_y - TEXT_PADDING * 1.5,
+        camera_y - TEXT_PADDING * 2.0,
         0.0,
     );
-    commands.spawn((
-        Text2d::new(BACKTOTITLE_TEXT),
-        TextFont {
-            font: asset_server.load(PATH_FONT),
-            font_size: TEXT_SIZE,
-            ..Default::default()
-        },
-        TextColor(TEXT_COLOR),
-        Transform::from_xyz(x, y, z),
-        Gameover,
+    commands.spawn(Gameover::new(
+        BACKTOTITLE_TEXT.to_string(), 
+        font.clone(),
+        TEXT_SIZE, 
+        TEXT_COLOR, 
+        translation,
     ));
     // board
     let (x, y, z) = (

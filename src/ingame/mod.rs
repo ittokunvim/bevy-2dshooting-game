@@ -1,9 +1,10 @@
 use bevy::prelude::*;
 
+pub mod fighter;
+pub mod torpedo;
+
 mod utils;
-mod fighter;
 mod player;
-mod torpedo;
 mod camera;
 mod scoreboard;
 

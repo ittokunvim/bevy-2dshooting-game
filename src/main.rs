@@ -36,12 +36,11 @@ impl Score {
         Self { fighter: 0, torpedo: 0, }
     }
 
-    fn sum(&self) -> usize {
-        let score_fighter = SCORE_FIGHTER * self.fighter;
-        let score_torpedo = SCORE_TORPEDO * self.torpedo;
+    fn sum_fighter(&self) -> usize { SCORE_FIGHTER * self.fighter }
 
-        score_fighter + score_torpedo
-    }
+    fn sum_torpedo(&self) -> usize { SCORE_TORPEDO * self.torpedo }
+
+    fn sum(&self) -> usize { self.sum_fighter() + self.sum_torpedo() }
 
     fn reset() -> Self {
         Self::new()

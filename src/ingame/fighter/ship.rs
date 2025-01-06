@@ -10,13 +10,13 @@ use crate::{
 };
 use crate::ingame::GRID_SIZE;
 use crate::ingame::fighter::{
+    PATH_IMAGE_FIGHTER as PATH_IMAGE,
     FighterDamageEvent,
     FighterDespawnEvent,
     Fighter,
 };
 use crate::ingame::utils::prelude::*;
 
-const PATH_IMAGE: &str = "bevy-2dshooting-game/fighter-ship.png";
 const SIZE: Vec2 = Vec2::splat(32.0);
 const HP: usize = 1;
 const DEGREES: f32 = 180.0;
