@@ -4,6 +4,8 @@ pub mod ship;
 mod bullet;
 mod sound;
 
+pub const PLAYER_HP: usize = 8;
+
 #[derive(Event, Default)]
 struct ShootEvent;
 
