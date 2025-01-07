@@ -10,6 +10,7 @@ use crate::ingame::{
     CAMERA_SPEED,
 };
 use crate::ingame::player::{
+    PLAYER_HP as HP,
     PlayerDamageEvent,
     Player,
 };
@@ -17,7 +18,6 @@ use crate::ingame::utils::prelude::*;
 
 const PATH_IMAGE: &str = "bevy-2dshooting-game/player-ship.png";
 const IMAGE_SIZE: UVec2 = UVec2::splat(32);
-const HP: usize = 8;
 const SIZE: Vec2 = Vec2::splat(32.0);
 const BULLETS: usize = 2;
 const COLUMN: u32 = 4;

@@ -38,6 +38,8 @@
 
 背景画像 [Void - Environment Pack](https://foozlecc.itch.io/void-environment-pack)
 
+ハート画像 [hp heart](https://gft123456er.itch.io/hp-heart)
+
 フォント [美咲フォント](https://littlelimit.net/misaki.htm)
 
 効果音 [効果音ラボ](https://soundeffect-lab.info/)
