@@ -34,26 +34,31 @@ fn setup(
 
 fn event(
     mut events: EventWriter<ShootEvent>,
+    mut player_query: Query<&mut Player, With<Player>>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
 ) {
     if !keyboard_input.just_pressed(KEYCODE) { return }
+
+    let Ok(mut player) = player_query.get_single_mut() else { return };
+
+    if player.bullets <= 0 { return }
     // debug!("event");
     events.send_default();
+    player.bullets -= 1;
+    // trace!("player.bullets: {}", player.bullets);
 }
 
 fn shoot(
     mut commands: Commands,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
     mut events: EventReader<ShootEvent>,
-    mut player_query: Query<(&mut Player, &Transform), With<Player>>,
+    player_query: Query<&Transform, With<Player>>,
     bullet_image: Res<BulletImage>,
 ) {
-    let Ok((mut player, transform)) = player_query.get_single_mut() else { return };
-
     if events.is_empty() { return }
     events.clear();
-    if player.bullets <= 0 { return }
 
+    let Ok(transform) = player_query.get_single() else { return };
     let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
     let translation = Vec3::new(
@@ -76,8 +81,6 @@ fn shoot(
     );
     // debug!("shoot");
     commands.spawn((bullet, animation_config, velocity));
-    player.bullets -= 1;
-    // trace!("player.bullets: {}", player.bullets);
 }
 
 pub struct BulletPlugin;
