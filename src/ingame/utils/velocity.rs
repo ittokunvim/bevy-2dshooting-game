@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::AppState;
-use crate::ingame::CAMERA_SPEED;
+use crate::ingame::camera::SPEED as CAMERA_SPEED;
 
 #[derive(Component, Deref, DerefMut, Debug)]
 pub struct Velocity(pub Vec2);

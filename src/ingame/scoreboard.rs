@@ -33,63 +33,110 @@ struct ScoreText;
 #[derive(Component)]
 struct Heart(usize);
 
-fn setup(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-) {
-    // debug!("setup");
-    // score
-    let (top, left) = (
-        Val::Px(PADDING),
-        Val::Px(PADDING),
-    );
-    commands.spawn((
-        Text::new(SCORE_TEXT),
+impl ScoreboardUi {
+    fn new_text(
+        text: String,
+        font: Handle<Font>,
+        font_size: f32,
+        color: Color,
+        top: Val,
+        left: Val,
+    ) -> (Self, Text, TextFont, TextColor, Node) {
+        (
+            Self,
+            Text::new(text),
+            Self::textfont(font, font_size),
+            TextColor(color),
+            Self::node(top, left),
+        )
+    }
+
+    fn new_span(
+        font: Handle<Font>,
+        font_size: f32,
+        color: Color,
+    ) -> (Self, TextFont, TextColor) {
+        (
+            Self,
+            Self::textfont(font, font_size),
+            TextColor(color),
+        )
+    }
+
+    fn new_image(
+        image: Handle<Image>,
+        scale: Vec3,
+        top: Val,
+        left: Val,
+    ) -> (Self, ImageNode, Transform, Node) {
+        (
+            Self,
+            ImageNode::new(image),
+            Transform::from_scale(scale),
+            Self::node(top, left),
+        )
+    }
+
+    fn textfont(
+        font: Handle<Font>,
+        font_size: f32,
+    ) -> TextFont {
         TextFont {
-            font: asset_server.load(PATH_FONT),
-            font_size: TEXT_SIZE,
+            font,
+            font_size,
             ..Default::default()
-        },
-        TextColor(TEXT_COLOR),
+        }
+    }
+
+    fn node(
+        top: Val,
+        left: Val,
+    ) -> Node {
         Node {
             position_type: PositionType::Absolute,
             top,
             left,
             ..Default::default()
-        },
-        ScoreboardUi,
+        }
+    }
+}
+
+fn setup(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+) {
+    // debug!("setup");
+    let font = asset_server.load(PATH_FONT);
+    // score
+    let (top, left) = (
+        Val::Px(PADDING),
+        Val::Px(PADDING),
+    );
+    commands.spawn(ScoreboardUi::new_text(
+        SCORE_TEXT.to_string(),
+        font.clone(),
+        TEXT_SIZE,
+        TEXT_COLOR,
+        top,
+        left,
     ))
-    .with_child((
-        TextSpan::default(),
-        TextFont {
-            font: asset_server.load(PATH_FONT),
-            font_size: TEXT_SIZE,
-            ..Default::default()
-        },
-        TextColor(TEXT_COLOR),
-        ScoreboardUi,
-        ScoreText,
+    .with_child(ScoreboardUi::new_span(
+        font.clone(),
+        TEXT_SIZE,
+        TEXT_COLOR,
     ));
     // player hp
     let (top, left) = (
         Val::Px(PADDING),
         Val::Px(WINDOW_SIZE.x / 2.0 + PADDING),
     );
-    commands.spawn((
-        Text::new(LIFE_TEXT),
-        TextFont {
-            font: asset_server.load(PATH_FONT),
-            font_size: TEXT_SIZE,
-            ..Default::default()
-        },
-        TextColor(TEXT_COLOR),
-        Node {
-            position_type: PositionType::Absolute,
-            top,
-            left,
-            ..Default::default()
-        },
-        ScoreboardUi,
+    commands.spawn(ScoreboardUi::new_text(
+        LIFE_TEXT.to_string(), 
+        font.clone(), 
+        TEXT_SIZE, 
+        TEXT_COLOR, 
+        top, 
+        left,
     ));
     // player hp heart
     let image = asset_server.load(PATH_IMAGE);
@@ -104,19 +151,15 @@ fn setup(
             top = Val::Px(PADDING - HEART_MARGIN + HEART_SIZE.y);
             left = Val::Px(
                 WINDOW_SIZE.x / 2.0 + PADDING + LIFE_TEXT_WIDTH - HEART_MARGIN +
-                HEART_SIZE.x * (i - HEART_WRAP) as f32
-            );
+                HEART_SIZE.x * (i - HEART_WRAP) as f32);
         }
         commands.spawn((
-            ImageNode::new(image.clone()),
-            Transform::from_scale(HEART_SCALE),
-            Node {
-                position_type: PositionType::Absolute,
+            ScoreboardUi::new_image(
+                image.clone(),
+                HEART_SCALE,
                 top,
                 left,
-                ..Default::default()
-            },
-            ScoreboardUi,
+            ),
             Heart(i),
         ));
     }

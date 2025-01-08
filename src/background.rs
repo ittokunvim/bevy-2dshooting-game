@@ -7,7 +7,7 @@ use crate::{
 };
 
 const BACKGROUND_COLOR: Color = Color::srgb(0.1, 0.1, 0.1);
-const PATH_IMAGE_BACKGROUND: &str = "bevy-2dshooting-game/background.png";
+const PATH_IMAGE: &str = "bevy-2dshooting-game/background.png";
 const IMAGE_SIZE: UVec2 = UVec2::new(640, 480);
 const COLUMN: u32 = 9;
 const ROW: u32 = 1;
@@ -33,7 +33,7 @@ fn setup(
     asset_server: Res<AssetServer>,
 ) {
     // debug!("setup");
-    let images = asset_server.load(PATH_IMAGE_BACKGROUND);
+    let images = asset_server.load(PATH_IMAGE);
 
     for i in 0..MAX_COUNT {
         let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);

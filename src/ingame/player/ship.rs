@@ -5,10 +5,8 @@ use crate::{
     AppState,
     MyCamera,
 };
-use crate::ingame::{
-    GRID_SIZE,
-    CAMERA_SPEED,
-};
+use crate::ingame::GRID_SIZE;
+use crate::ingame::camera::SPEED as CAMERA_SPEED;
 use crate::ingame::player::{
     PLAYER_HP as HP,
     PlayerDamageEvent,

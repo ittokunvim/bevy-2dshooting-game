@@ -42,9 +42,7 @@ impl Score {
 
     fn sum(&self) -> usize { self.sum_fighter() + self.sum_torpedo() }
 
-    fn reset() -> Self {
-        Self::new()
-    }
+    fn reset() -> Self { Self::new() }
 }
 
 fn main() {

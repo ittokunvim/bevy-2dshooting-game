@@ -4,7 +4,8 @@ use crate::{
     AppState,
     MyCamera,
 };
-use crate::ingame::CAMERA_SPEED as SPEED;
+
+pub const SPEED: f32 = 0.2;
 
 fn scrollup(
     mut query: Query<&mut Transform, With<MyCamera>>,

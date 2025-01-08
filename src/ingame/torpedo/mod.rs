@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 
-pub mod ship;
-pub mod bullet;
+mod bullet;
 mod despawn;
+mod ship;
 mod sound;
 
 pub const PATH_IMAGE_TORPEDO: &str = "bevy-2dshooting-game/torpedo-ship.png";
@@ -12,9 +12,6 @@ pub struct TorpedoDamageEvent(pub Entity);
 
 #[derive(Event)]
 pub struct TorpedoDespawnEvent(Vec2);
-
-#[derive(Event, Default)]
-struct TorpedoSpawnEvent;
 
 #[derive(Component)]
 pub struct Torpedo {
@@ -30,10 +27,9 @@ impl Plugin for TorpedoPlugin {
         app
             .add_event::<TorpedoDamageEvent>()
             .add_event::<TorpedoDespawnEvent>()
-            .add_event::<TorpedoSpawnEvent>()
             .add_plugins(bullet::BulletPlugin)
-            .add_plugins(ship::ShipPlugin)
             .add_plugins(despawn::DespawnPlugin)
+            .add_plugins(ship::ShipPlugin)
             .add_plugins(sound::SoundPlugin)
         ;
     }

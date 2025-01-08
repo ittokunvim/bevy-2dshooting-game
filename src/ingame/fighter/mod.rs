@@ -1,10 +1,9 @@
 use bevy::prelude::*;
 
-pub mod ship;
-pub mod bullet;
-
-mod sound;
+mod bullet;
 mod despawn;
+mod ship;
+mod sound;
 
 pub const PATH_IMAGE_FIGHTER: &str = "bevy-2dshooting-game/fighter-ship.png";
 
@@ -28,10 +27,10 @@ impl Plugin for FighterPlugin {
         app
             .add_event::<FighterDamageEvent>()
             .add_event::<FighterDespawnEvent>()
-            .add_plugins(ship::ShipPlugin)
             .add_plugins(bullet::BulletPlugin)
-            .add_plugins(sound::SoundPlugin)
             .add_plugins(despawn::DespawnPlugin)
+            .add_plugins(ship::ShipPlugin)
+            .add_plugins(sound::SoundPlugin)
         ;
     }
 }
