@@ -57,9 +57,10 @@ impl ScoreboardUi {
         font: Handle<Font>,
         font_size: f32,
         color: Color,
-    ) -> (Self, TextFont, TextColor) {
+    ) -> (Self, TextSpan, TextFont, TextColor) {
         (
             Self,
+            TextSpan::default(),
             Self::textfont(font, font_size),
             TextColor(color),
         )
@@ -122,10 +123,13 @@ fn setup(
         top,
         left,
     ))
-    .with_child(ScoreboardUi::new_span(
-        font.clone(),
-        TEXT_SIZE,
-        TEXT_COLOR,
+    .with_child((
+        ScoreboardUi::new_span(
+            font.clone(),
+            TEXT_SIZE,
+            TEXT_COLOR,
+        ),
+        ScoreText,
     ));
     // player hp
     let (top, left) = (
