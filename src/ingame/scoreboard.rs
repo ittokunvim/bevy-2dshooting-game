@@ -8,7 +8,6 @@ use crate::{
 };
 use crate::ingame::player::{
     PLAYER_HP,
-    PlayerDamageEvent,
     Player,
 };
 
@@ -23,6 +22,9 @@ const HEART_WRAP: usize = 5;
 const TEXT_SIZE: f32 = 20.0;
 const TEXT_COLOR: Color = Color::srgb(0.9, 0.9, 0.9);
 const PADDING: f32 = 5.0;
+
+#[derive(Resource, Deref, DerefMut)]
+struct HeartCount(usize);
 
 #[derive(Component)]
 struct ScoreboardUi;
@@ -176,17 +178,18 @@ fn update_score(
 
 fn update_playerhp(
     mut commands: Commands,
-    mut events: EventReader<PlayerDamageEvent>,
+    mut count: ResMut<HeartCount>,
     heart_query: Query<(&Heart, Entity), With<Heart>>,
     player_query: Query<&Player, With<Player>>,
 ) {
-    if events.is_empty() { return }
-    events.clear();
-
     let Ok(player) = player_query.get_single() else { return };
 
+    if player.hp == **count { return }
+
     for (heart, heart_entity) in &heart_query {
-        if player.hp != heart.0 { continue }
+        if player.hp != heart.0 - 1 { continue }
+        **count -= 1;
+        // trace!("count: {}", **count);
         commands.entity(heart_entity).despawn();
     }
 }
@@ -194,6 +197,11 @@ fn update_playerhp(
 fn reset_score(mut score: ResMut<Score>) {
     // debug!("reset_score");
     *score = Score::reset();
+}
+
+fn reset_count(mut count: ResMut<HeartCount>) {
+    // debug!("reset_count");
+    **count = PLAYER_HP;
 }
 
 fn all_despawn(
@@ -209,13 +217,17 @@ pub struct ScoreboardPlugin;
 impl Plugin for ScoreboardPlugin {
     fn build(&self, app: &mut App) {
         app
+            .insert_resource(HeartCount(PLAYER_HP))
             .add_systems(OnEnter(AppState::Ingame), setup)
             .add_systems(Update, (
                 update_score,
                 update_playerhp,
             ).run_if(in_state(AppState::Ingame)))
             .add_systems(OnExit(AppState::Ingame), all_despawn)
-            .add_systems(OnExit(AppState::Gameover), reset_score)
+            .add_systems(OnExit(AppState::Gameover), (
+                reset_score,
+                reset_count,
+            ))
         ;
     }
 }

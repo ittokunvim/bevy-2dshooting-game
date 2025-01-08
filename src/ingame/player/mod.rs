@@ -9,9 +9,6 @@ pub const PLAYER_HP: usize = 8;
 #[derive(Event, Default)]
 struct ShootEvent;
 
-#[derive(Event, Default)]
-pub struct PlayerDamageEvent;
-
 #[derive(Component)]
 pub struct Player {
     pub hp: usize,
@@ -31,7 +28,6 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_event::<ShootEvent>()
-            .add_event::<PlayerDamageEvent>()
             .add_plugins(ship::ShipPlugin)
             .add_plugins(bullet::BulletPlugin)
             .add_plugins(sound::SoundPlugin)

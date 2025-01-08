@@ -8,10 +8,7 @@ use crate::{
     AppState,
     MyCamera,
 };
-use crate::ingame::player::{
-    PlayerDamageEvent,
-    Player,
-};
+use crate::ingame::player::Player;
 use crate::ingame::fighter::{
     FighterDamageEvent,
     Fighter,
@@ -81,11 +78,10 @@ impl Bullet {
 
 fn check_for_hit_player(
     mut commands: Commands,
-    mut events: EventWriter<PlayerDamageEvent>,
     bullet_query: Query<(&Bullet, Entity, &Transform), (With<Bullet>, Without<Player>)>,
-    player_query: Query<(&Player, &Transform), (With<Player>, Without<Bullet>)>,
+    mut player_query: Query<(&mut Player, &Transform), (With<Player>, Without<Bullet>)>,
 ) {
-    let Ok((player, player_transform)) = player_query.get_single() else { return };
+    let Ok((mut player, player_transform)) = player_query.get_single_mut() else { return };
     let player_pos = player_transform.translation.xy();
 
     for (bullet, bullet_entity, bullet_transform) in &bullet_query {
@@ -98,7 +94,8 @@ fn check_for_hit_player(
 
         if collision {
             // debug!("check_for_hit_player");
-            events.send_default();
+            player.hp -= 1;
+            // trace!("player.hp: {}", player.hp);
             commands.entity(bullet_entity).despawn();
         }
     }

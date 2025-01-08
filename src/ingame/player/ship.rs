@@ -9,7 +9,6 @@ use crate::ingame::GRID_SIZE;
 use crate::ingame::camera::SPEED as CAMERA_SPEED;
 use crate::ingame::player::{
     PLAYER_HP as HP,
-    PlayerDamageEvent,
     Player,
 };
 use crate::ingame::utils::prelude::*;
@@ -94,19 +93,6 @@ fn movement(
     ship_transform.translation.y += CAMERA_SPEED;
 }
 
-fn damage(
-    mut events: EventReader<PlayerDamageEvent>,
-    mut query: Query<&mut Player, With<Player>>,
-) {
-    if events.is_empty() { return }
-    events.clear();
-
-    let Ok(mut player) = query.get_single_mut() else { return };
-    // debug!("damage");
-    player.hp -= 1;
-    // trace!("player.hp: {}", player.hp);
-}
-
 fn despawn(
     mut commands: Commands,
     query: Query<(Entity, &Player), With<Player>>,
@@ -130,7 +116,6 @@ impl Plugin for ShipPlugin {
             .add_systems(OnEnter(AppState::Ingame), setup)
             .add_systems(Update, (
                 movement,
-                damage,
                 despawn,
             ).run_if(in_state(AppState::Ingame)))
         ;
