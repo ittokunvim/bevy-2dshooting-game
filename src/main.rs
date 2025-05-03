@@ -1,6 +1,7 @@
 use bevy::{
     prelude::*,
     log::LogPlugin,
+    asset::AssetMetaCheck,
 };
 
 mod background;
@@ -60,6 +61,10 @@ fn main() {
             .set(LogPlugin {
                 filter: "info,wgpu_core=warn,wgpu_hal=warn,bevy_2dshooting_game=trace".into(),
                 level: bevy::log::Level::DEBUG,
+                ..Default::default()
+            })
+            .set(AssetPlugin {
+                meta_check: AssetMetaCheck::Never,
                 ..Default::default()
             })
         )
