@@ -2,5 +2,4 @@
 
 .DS_Store
 
-/examples/assets
-/examples/bevy-2dshooting-game*
+/examples
