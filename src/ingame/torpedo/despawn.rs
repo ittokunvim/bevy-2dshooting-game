@@ -4,7 +4,7 @@ use crate::AppState;
 use crate::ingame::torpedo::TorpedoDespawnEvent;
 use crate::ingame::utils::prelude::*;
 
-const PATH_IMAGE: &str = "bevy-2dshooting-game/torpedo-despawn.png";
+const PATH_IMAGE: &str = "ittoku-2dshooting-game/torpedo-despawn.png";
 const IMAGE_SIZE: UVec2 = UVec2::splat(64);
 const COLUMN: u32 = 10;
 const ROW: u32 = 1;

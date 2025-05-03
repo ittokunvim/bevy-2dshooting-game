@@ -13,7 +13,7 @@ use crate::ingame::player::{
 };
 use crate::ingame::utils::prelude::*;
 
-const PATH_IMAGE: &str = "bevy-2dshooting-game/player-ship.png";
+const PATH_IMAGE: &str = "ittoku-2dshooting-game/player-ship.png";
 const IMAGE_SIZE: UVec2 = UVec2::splat(32);
 const SIZE: Vec2 = Vec2::splat(32.0);
 const BULLETS: usize = 2;

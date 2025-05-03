@@ -5,7 +5,7 @@ mod despawn;
 mod ship;
 mod sound;
 
-pub const PATH_IMAGE_FIGHTER: &str = "bevy-2dshooting-game/fighter-ship.png";
+pub const PATH_IMAGE_FIGHTER: &str = "ittoku-2dshooting-game/fighter-ship.png";
 
 #[derive(Event)]
 pub struct FighterDamageEvent(pub Entity);

@@ -5,7 +5,7 @@ mod despawn;
 mod ship;
 mod sound;
 
-pub const PATH_IMAGE_TORPEDO: &str = "bevy-2dshooting-game/torpedo-ship.png";
+pub const PATH_IMAGE_TORPEDO: &str = "ittoku-2dshooting-game/torpedo-ship.png";
 
 #[derive(Event)]
 pub struct TorpedoDamageEvent(pub Entity);

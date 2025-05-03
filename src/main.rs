@@ -8,7 +8,7 @@ mod mainmenu;
 mod ingame;
 mod gameover;
 
-const GAMETITLE: &str = "2Dシューティングゲーム";
+const GAMETITLE: &str = "いっとく2Dシューティングゲーム";
 const WINDOW_SIZE: Vec2 = Vec2::new(640.0, 480.0);
 const PATH_FONT: &str = "fonts/misaki_gothic.ttf";
 

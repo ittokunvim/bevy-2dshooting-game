@@ -5,7 +5,7 @@ use crate::ingame::GRID_SIZE;
 use crate::ingame::fighter::Fighter;
 use crate::ingame::utils::prelude::*;
 
-const PATH_IMAGE: &str = "bevy-2dshooting-game/fighter-bullet.png";
+const PATH_IMAGE: &str = "ittoku-2dshooting-game/fighter-bullet.png";
 const IMAGE_SIZE: UVec2 = UVec2::new(4, 16);
 const COLUMN: u32 = 4;
 const ROW: u32 = 1;

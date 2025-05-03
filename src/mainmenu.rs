@@ -6,7 +6,7 @@ use crate::{
     AppState,
 };
 
-const GAMETITLE_SIZE: f32 = 32.0;
+const GAMETITLE_SIZE: f32 = 20.0;
 const GAMETITLE_COLOR: Color = Color::srgb(0.1, 0.1, 0.1);
 const CLICKSTART_TEXT: &str = "クリックしてスタート";
 const CLICKSTART_COLOR: Color = Color::srgb(0.4, 0.4, 0.4);

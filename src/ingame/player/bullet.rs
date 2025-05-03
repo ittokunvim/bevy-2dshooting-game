@@ -8,7 +8,7 @@ use crate::ingame::player::{
 };
 use crate::ingame::utils::prelude::*;
 
-const PATH_IMAGE: &str = "bevy-2dshooting-game/player-bullet.png";
+const PATH_IMAGE: &str = "ittoku-2dshooting-game/player-bullet.png";
 const IMAGE_SIZE: UVec2 = UVec2::splat(32);
 const COLUMN: u32 = 4;
 const ROW: u32 = 1;

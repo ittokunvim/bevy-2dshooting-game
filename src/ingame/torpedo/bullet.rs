@@ -6,7 +6,7 @@ use crate::ingame::player::Player;
 use crate::ingame::torpedo::Torpedo;
 use crate::ingame::utils::prelude::*;
 
-const PATH_IMAGE: &str = "bevy-2dshooting-game/torpedo-bullet.png";
+const PATH_IMAGE: &str = "ittoku-2dshooting-game/torpedo-bullet.png";
 const IMAGE_SIZE: UVec2 = UVec2::new(11, 32);
 const COLUMN: u32 = 3;
 const ROW: u32 = 1;
