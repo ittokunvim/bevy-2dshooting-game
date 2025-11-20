@@ -22,9 +22,18 @@
 - AWSDキー: 移動
 - スペース: 弾を発射
 
-## Wasm変換
 
-`./wasm.sh`を実行することでゲームを`Web Assembly`に変換することができます。
+## Wasmに変換する
+
+ゲームをWasmに変換する場合は、以下のコマンドを実行します。
+
+```sh
+# ビルド
+cargo build --release --target wasm32-unknown-unknown
+# 変換
+wasm-bindgen --target web --out-dir ./examples --no-typescript \
+target/wasm32-unknown-unknown/release/ittoku_2dshooting_game.wasm
+```
 
 ## クレジット
 
