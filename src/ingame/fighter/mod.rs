@@ -25,8 +25,6 @@ pub struct FighterPlugin;
 impl Plugin for FighterPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_event::<FighterDamageEvent>()
-            .add_event::<FighterDespawnEvent>()
             .add_plugins(bullet::BulletPlugin)
             .add_plugins(despawn::DespawnPlugin)
             .add_plugins(ship::ShipPlugin)

@@ -46,11 +46,11 @@ fn spawn(
     mut count: ResMut<ShipCount>,
     image: Res<ShipImage>,
     query: Query<&Transform, With<MyCamera>>,
-) {
-    if **count >= MAX_COUNT { return }
+) -> Result {
+    if **count >= MAX_COUNT { error!("too many ship count") }
 
     let mut rng = rand::thread_rng();
-    let Ok(camera_transform) = query.get_single() else { return };
+    let camera_transform = query.single()?;
     let camera_y = camera_transform.translation.y;
     let die_x = Uniform::from(-GRID_SIZE * 18.0..GRID_SIZE * 18.0);
     let die_y = Uniform::from(camera_y + GRID_SIZE * 10.0..camera_y + GRID_SIZE * 12.0);
@@ -78,6 +78,8 @@ fn spawn(
     ));
     **count += 1;
     // trace!("count: {}", **count);
+
+    Ok(())
 }
 
 fn change_direction(
@@ -97,25 +99,22 @@ fn change_direction(
 }
 
 fn damage(
-    mut events: EventReader<FighterDamageEvent>,
+    damaged: On<FighterDamageEvent>,
     mut query: Query<(Entity, &mut Fighter), With<Fighter>>,
 ) {
-    for event in events.read() {
-        let damage_entity = event.0;
+    let damage_entity = damaged.0;
 
-        for (entity, mut fighter) in &mut query {
-            if damage_entity == entity {
-                // debug!("damage");
-                fighter.hp -= 1;
-                // trace!("fighter.hp: {}", fighter.hp);
-            }
+    for (entity, mut fighter) in &mut query {
+        if damage_entity == entity {
+            // debug!("damage");
+            fighter.hp -= 1;
+            // trace!("fighter.hp: {}", fighter.hp);
         }
     }
 }
 
 fn despawn(
     mut commands: Commands,
-    mut events: EventWriter<FighterDespawnEvent>,
     mut score: ResMut<Score>,
     mut count: ResMut<ShipCount>,
     query: Query<(Entity, &Fighter, &Transform), With<Fighter>>,
@@ -123,7 +122,7 @@ fn despawn(
     for (entity, fighter, transform) in &query {
         if fighter.hp <= 0 {
             // debug!("despawn");
-            events.send(FighterDespawnEvent(transform.translation.xy()));
+            commands.trigger(FighterDespawnEvent(transform.translation.xy()));
             // trace!("send ShipDespawnEvent");
             score.fighter += 1;
             // trace!("score.fighter: {}", score.fighter);
@@ -157,9 +156,9 @@ impl Plugin for ShipPlugin {
             .add_systems(Update, (
                 spawn,
                 change_direction,
-                damage,
                 despawn,
             ).run_if(in_state(AppState::Ingame)))
+            .add_observer(damage)
             .add_systems(OnExit(AppState::Ingame), (
                 reset_count,
                 all_despawn,
