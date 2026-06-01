@@ -174,10 +174,12 @@ fn setup(
 fn update_score(
     score: Res<Score>,
     mut query: Query<&mut TextSpan, With<ScoreText>>,
-) {
-    let Ok(mut span) = query.get_single_mut() else { return };
+) -> Result {
+    let mut span = query.single_mut()?;
     // update score
     **span = score.sum().to_string();
+
+    Ok(())
 }
 
 fn update_playerhp(
@@ -185,10 +187,10 @@ fn update_playerhp(
     mut count: ResMut<HeartCount>,
     heart_query: Query<(&Heart, Entity), With<Heart>>,
     player_query: Query<&Player, With<Player>>,
-) {
-    let Ok(player) = player_query.get_single() else { return };
+) -> Result {
+    let player = player_query.single()?;
 
-    if player.hp == **count { return }
+    if player.hp == **count { error!("not found player hp") }
 
     for (heart, heart_entity) in &heart_query {
         if player.hp != heart.0 - 1 { continue }
@@ -196,6 +198,8 @@ fn update_playerhp(
         // trace!("count: {}", **count);
         commands.entity(heart_entity).despawn();
     }
+
+    Ok(())
 }
 
 fn reset_score(mut score: ResMut<Score>) {
