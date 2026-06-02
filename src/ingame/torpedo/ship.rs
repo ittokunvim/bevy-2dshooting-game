@@ -26,8 +26,8 @@ const DIRECTION: Vec2 = Vec2::new(1.0, 0.0);
 const SPEED: f32 = 128.0;
 const TIMER_RANGE: Range<f32> = 1.5..2.0;
 
-#[derive(Event, Default)]
-struct SpawnEvent;
+// #[derive(Event, Default)]
+// struct SpawnEvent;
 
 #[derive(Resource, Deref)]
 struct ShipImage(Handle<Image>);

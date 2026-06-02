@@ -47,7 +47,7 @@ fn spawn(
     image: Res<ShipImage>,
     query: Query<&Transform, With<MyCamera>>,
 ) -> Result {
-    if **count >= MAX_COUNT { error!("too many ship count") }
+    if **count >= MAX_COUNT { return Ok(()) }
 
     let mut rng = rand::thread_rng();
     let camera_transform = query.single()?;

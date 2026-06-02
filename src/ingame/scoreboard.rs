@@ -190,7 +190,7 @@ fn update_playerhp(
 ) -> Result {
     let player = player_query.single()?;
 
-    if player.hp == **count { error!("not found player hp") }
+    if player.hp == **count { return Ok(()) }
 
     for (heart, heart_entity) in &heart_query {
         if player.hp != heart.0 - 1 { continue }
