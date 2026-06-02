@@ -33,32 +33,31 @@ fn setup(
 }
 
 fn event(
-    mut events: EventWriter<ShootEvent>,
+    mut commands: Commands,
     mut player_query: Query<&mut Player, With<Player>>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
-) {
-    if !keyboard_input.just_pressed(KEYCODE) { return }
+) -> Result {
+    if !keyboard_input.just_pressed(KEYCODE) { return Ok(()) }
 
-    let Ok(mut player) = player_query.get_single_mut() else { return };
+    let mut player = player_query.single_mut()?;
 
-    if player.bullets <= 0 { return }
+    if player.bullets <= 0 { return Ok(()) }
     // debug!("event");
-    events.send_default();
+    commands.trigger(ShootEvent);
     player.bullets -= 1;
     // trace!("player.bullets: {}", player.bullets);
+
+    Ok(())
 }
 
 fn shoot(
+    _shot: On<ShootEvent>,
     mut commands: Commands,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
-    mut events: EventReader<ShootEvent>,
     player_query: Query<&Transform, With<Player>>,
     bullet_image: Res<BulletImage>,
-) {
-    if events.is_empty() { return }
-    events.clear();
-
-    let Ok(transform) = player_query.get_single() else { return };
+) -> Result {
+    let transform = player_query.single()?;
     let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
     let translation = Vec3::new(
@@ -81,6 +80,8 @@ fn shoot(
     );
     // debug!("shoot");
     commands.spawn((bullet, animation_config, velocity));
+
+    Ok(())
 }
 
 pub struct BulletPlugin;
@@ -91,8 +92,8 @@ impl Plugin for BulletPlugin {
             .add_systems(OnEnter(AppState::Ingame), setup)
             .add_systems(Update, (
                 event,
-                shoot,
             ).run_if(in_state(AppState::Ingame)))
+            .add_observer(shoot)
         ;
     }
 }
