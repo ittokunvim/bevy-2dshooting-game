@@ -41,18 +41,16 @@ fn setup(
 }
 
 fn spawn(
+    _despawned: On<FighterDespawnEvent>,
     mut commands: Commands,
-    mut events: EventReader<FighterDespawnEvent>,
     image: Res<ShipImage>,
     score: Res<Score>,
     query: Query<&Transform, With<MyCamera>>,
-) {
-    if events.is_empty() { return }
-    events.clear();
-    if score.fighter % 10 != 0 { return }
+) -> Result {
+    if score.fighter % 10 != 0 { return Ok(()) }
 
     let mut rng = rand::thread_rng();
-    let Ok(camera_transform) = query.get_single() else { return };
+    let camera_transform = query.single()?;
     let camera_y = camera_transform.translation.y;
     let die_x = Uniform::from(-GRID_SIZE * 18.0..GRID_SIZE * 18.0);
     let die_timer = Uniform::from(TIMER_RANGE);
@@ -77,6 +75,8 @@ fn spawn(
         Torpedo { size: SIZE, hp: HP, shoot_timer: Timer::from_seconds(duration, mode) },
         Velocity(direction * SPEED),
     ));
+
+    Ok(())
 }
 
 fn change_direction(
@@ -96,32 +96,29 @@ fn change_direction(
 }
 
 pub fn damage(
-    mut events: EventReader<TorpedoDamageEvent>,
+    damaged: On<TorpedoDamageEvent>,
     mut query: Query<(Entity, &mut Torpedo), With<Torpedo>>,
 ) {
-    for event in events.read() {
-        let damaged_entity = event.0;
+    let damaged_entity = damaged.0;
 
-        for (entity, mut torpedo) in &mut query {
-            if damaged_entity == entity {
-                // debug!("damage");
-                torpedo.hp -= 1;
-                // trace!("torpedo.hp: {}", torpedo.hp);
-            }
+    for (entity, mut torpedo) in &mut query {
+        if damaged_entity == entity {
+            // debug!("damage");
+            torpedo.hp -= 1;
+            // trace!("torpedo.hp: {}", torpedo.hp);
         }
     }
 }
 
 fn despawn(
     mut commands: Commands,
-    mut events: EventWriter<TorpedoDespawnEvent>,
     mut score: ResMut<Score>,
     query: Query<(Entity, &Torpedo, &Transform), With<Torpedo>>,
 ) {
     for (entity, torpedo, transform) in &query {
         if torpedo.hp <= 0 {
             // debug!("despawn");
-            events.send(TorpedoDespawnEvent(transform.translation.xy()));
+            commands.trigger(TorpedoDespawnEvent(transform.translation.xy()));
             // trace!("send TorpedoDespawnEvent");
             score.torpedo += 1;
             // trace!("score.torpedo: {}", score.torpedo);
@@ -143,14 +140,13 @@ pub struct ShipPlugin;
 impl Plugin for ShipPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_event::<SpawnEvent>()
             .add_systems(OnEnter(AppState::Ingame), setup)
             .add_systems(Update, (
-                spawn,
                 change_direction,
-                damage,
                 despawn,
             ).run_if(in_state(AppState::Ingame)))
+            .add_observer(spawn)
+            .add_observer(damage)
             .add_systems(OnExit(AppState::Ingame), (
                 all_despawn,
             ))

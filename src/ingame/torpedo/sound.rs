@@ -19,12 +19,10 @@ fn setup(
 
 
 fn play_damage_sound(
-    mut events: EventReader<TorpedoDamageEvent>,
+    _damaged: On<TorpedoDamageEvent>,
     mut commands: Commands,
     sound: Res<DespawnSound>,
 ) {
-    if events.is_empty() { return }
-    events.clear();
     // debug!("play_damage_sound");
     commands.spawn((
         AudioPlayer(sound.clone()),
@@ -38,7 +36,7 @@ impl Plugin for SoundPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_systems(OnEnter(AppState::Ingame), setup)
-            .add_systems(Update, play_damage_sound.run_if(in_state(AppState::Ingame)))
+            .add_observer(play_damage_sound)
         ;
     }
 }

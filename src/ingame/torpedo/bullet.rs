@@ -34,8 +34,8 @@ fn shoot(
     player_query: Query<&Transform, (With<Player>, Without<Torpedo>)>,
     bullet_image: Res<BulletImage>,
     time: Res<Time>,
-) {
-    let Ok(player_transform) = player_query.get_single() else { return };
+) -> Result {
+    let player_transform = player_query.single()?;
 
     for (mut torpedo, torpedo_transform) in &mut torpedo_query {
         if !torpedo.shoot_timer.tick(time.delta()).just_finished() { continue }
@@ -67,6 +67,8 @@ fn shoot(
         // debug!("shoot");
         commands.spawn((bullet, animation_config, velocity));
     }
+
+    Ok(())
 }
 
 pub struct BulletPlugin;

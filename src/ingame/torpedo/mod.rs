@@ -25,8 +25,6 @@ pub struct TorpedoPlugin;
 impl Plugin for TorpedoPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_event::<TorpedoDamageEvent>()
-            .add_event::<TorpedoDespawnEvent>()
             .add_plugins(bullet::BulletPlugin)
             .add_plugins(despawn::DespawnPlugin)
             .add_plugins(ship::ShipPlugin)
