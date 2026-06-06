@@ -69,9 +69,9 @@ fn setup(
     asset_server: Res<AssetServer>,
     camera_query: Query<&Transform, With<MyCamera>>,
     score: Res<Score>,
-) {
+) -> Result {
     // debug!("setup");
-    let Ok(camera_transform) = camera_query.get_single() else { return };
+    let camera_transform = camera_query.single()?;
     let camera_y = camera_transform.translation.y;
     let font = asset_server.load(PATH_FONT);
     // game over
@@ -183,6 +183,8 @@ fn setup(
         Transform::from_xyz(x, y, z),
         Gameover,
     ));
+
+    Ok(())
 }
 
 fn update(

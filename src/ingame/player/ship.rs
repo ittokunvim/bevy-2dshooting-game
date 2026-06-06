@@ -58,7 +58,7 @@ fn movement(
     camera_query: Query<&Transform, (With<MyCamera>, Without<Player>)>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
     time_step: Res<Time<Fixed>>,
-) {
+) -> Result {
     let mut direction = Vec2::ZERO;
     // set direction
     for key in keyboard_input.get_pressed() {
@@ -71,9 +71,9 @@ fn movement(
         }
     }
 
-    let Ok(mut ship_transform) = player_query.get_single_mut() else { return };
+    let mut ship_transform = player_query.single_mut()?;
     let ship_xy = ship_transform.translation.xy();
-    let Ok(camera_transform) = camera_query.get_single() else { return };
+    let camera_transform = camera_query.single()?;
     let camera_xy = camera_transform.translation.xy();
     // set player x position
     let new_player_position_x = ship_xy.x
@@ -91,14 +91,16 @@ fn movement(
     ship_transform.translation.x = new_player_position_x.clamp(left_bound, right_bound);
     ship_transform.translation.y = new_player_position_y.clamp(down_bound, up_bound);
     ship_transform.translation.y += CAMERA_SPEED;
+
+    Ok(())
 }
 
 fn despawn(
     mut commands: Commands,
     query: Query<(Entity, &Player), With<Player>>,
     mut next_state: ResMut<NextState<AppState>>,
-) {
-    let Ok((entity, player)) = query.get_single() else { return };
+) -> Result {
+    let (entity, player) = query.single()?;
 
     if player.hp <= 0 {
         // debug!("despawn");
@@ -106,6 +108,8 @@ fn despawn(
         // trace!("AppState Ingame -> Gameover");
         next_state.set(AppState::Gameover);
     }
+
+    Ok(())
 }
 
 pub struct ShipPlugin;

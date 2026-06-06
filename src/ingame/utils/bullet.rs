@@ -80,8 +80,8 @@ fn check_for_hit_player(
     mut commands: Commands,
     bullet_query: Query<(&Bullet, Entity, &Transform), (With<Bullet>, Without<Player>)>,
     mut player_query: Query<(&mut Player, &Transform), (With<Player>, Without<Bullet>)>,
-) {
-    let Ok((mut player, player_transform)) = player_query.get_single_mut() else { return };
+) -> Result {
+    let (mut player, player_transform) = player_query.single_mut()?;
     let player_pos = player_transform.translation.xy();
 
     for (bullet, bullet_entity, bullet_transform) in &bullet_query {
@@ -99,15 +99,16 @@ fn check_for_hit_player(
             commands.entity(bullet_entity).despawn();
         }
     }
+
+    Ok(())
 }
 
 fn check_for_hit_fighter(
     mut commands: Commands,
-    mut events: EventWriter<FighterDamageEvent>,
     mut player_query: Query<&mut Player, With<Player>>,
     bullet_query: Query<(&Bullet, Entity, &Transform), (With<Bullet>, Without<Fighter>)>,
     fighter_query: Query<(&Fighter, Entity, &Transform), (With<Fighter>, Without<Bullet>)>,
-) {
+) -> Result {
     for (bullet, bullet_entity, bullet_transform) in &bullet_query {
         if bullet.shooter != Shooter::Player { continue }
 
@@ -123,26 +124,27 @@ fn check_for_hit_fighter(
             if collision {
                 // debug!("check_for_hit_fighter");
                 is_hit_bullet = true;
-                events.send(FighterDamageEvent(fighter_entity));
+                commands.trigger(FighterDamageEvent(fighter_entity));
             }
         }
         if is_hit_bullet {
-            let Ok(mut player) = player_query.get_single_mut() else { return };
+            let mut player = player_query.single_mut()?;
 
             player.bullets += 1;
             // trace!("player.bullets: {}", player.bullets);
             commands.entity(bullet_entity).despawn();
         }
     }
+
+    Ok(())
 }
 
 fn check_for_hit_torpedo(
     mut commands: Commands,
-    mut events: EventWriter<TorpedoDamageEvent>,
     mut player_query: Query<&mut Player, With<Player>>,
     bullet_query: Query<(&Bullet, Entity, &Transform), (With<Bullet>, Without<Torpedo>)>,
     torpedo_query: Query<(&Torpedo, Entity, &Transform), (With<Torpedo>, Without<Bullet>)>,
-) {
+) -> Result {
     for (bullet, bullet_entity, bullet_transform) in &bullet_query {
         if bullet.shooter != Shooter::Player { continue }
 
@@ -157,17 +159,19 @@ fn check_for_hit_torpedo(
             if collision {
                 // debug!("check_for_hit_torpedo");
                 is_hit_bullet = true;
-                events.send(TorpedoDamageEvent(torpedo_entity));
+                commands.trigger(TorpedoDamageEvent(torpedo_entity));
             }
         }
         if is_hit_bullet {
-            let Ok(mut player) = player_query.get_single_mut() else { return };
+            let mut player = player_query.single_mut()?;
 
             player.bullets += 1;
             // trace!("player.bullets: {}", player.bullets);
             commands.entity(bullet_entity).despawn();
         }
     }
+
+    Ok(())
 }
 
 fn check_for_offscreen(
@@ -176,10 +180,10 @@ fn check_for_offscreen(
     window_query: Query<&Window, With<PrimaryWindow>>,
     camera_query: Query<&Transform, (With<MyCamera>, Without<Bullet>)>,
     bullet_query: Query<(&Bullet, Entity, &Transform), (With<Bullet>, Without<MyCamera>)>,
-) {
-    let Ok(window) = window_query.get_single() else { return };
+) -> Result {
+    let window = window_query.single()?;
     let (window_width, window_height) = (window.width(), window.height());
-    let Ok(camera_transform) = camera_query.get_single() else { return };
+    let camera_transform = camera_query.single()?;
     let camera_pos = camera_transform.translation.xy();
 
     for (bullet, bullet_entity, bullet_transform) in &bullet_query {
@@ -194,7 +198,7 @@ fn check_for_offscreen(
         if bullet_x <= left_bound || bullet_x >= right_bound
         || bullet_y <= bottom_bound || bullet_y >= top_bound {
             if bullet.shooter == Shooter::Player {
-                let Ok(mut player) = player_query.get_single_mut() else { return };
+                let mut player = player_query.single_mut()?;
                 // debug!("check_for_offscreen");
                 player.bullets += 1;
                 // trace!("player.bullets: {}", player.bullets);
@@ -202,6 +206,8 @@ fn check_for_offscreen(
             commands.entity(bullet_entity).despawn();
         }
     }
+
+    Ok(())
 }
 
 fn all_despawn(

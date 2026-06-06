@@ -84,8 +84,8 @@ fn animation(
 fn check_offscreen(
     mut bg_query: Query<&mut Transform, (With<Mybackground>, Without<MyCamera>)>,
     camera_query: Query<&Transform, (With<MyCamera>, Without<Mybackground>)>,
-) {
-    let Ok(camera_transform) = camera_query.get_single() else { return };
+) -> Result {
+    let camera_transform = camera_query.single()?;
     let camera_y = (camera_transform.translation.y / 10.0).round() * 10.0;
 
     for mut bg_transform in &mut bg_query {
@@ -97,6 +97,8 @@ fn check_offscreen(
             // trace!("background y: {}", bg_transform.translation.y);
         }
     }
+
+    Ok(())
 }
 
 fn reset_position(

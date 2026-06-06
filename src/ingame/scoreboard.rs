@@ -12,16 +12,17 @@ use crate::ingame::player::{
 };
 
 const PATH_IMAGE: &str = "images/hp-heart.png";
+
 const SCORE_TEXT: &str = "スコア: ";
 const LIFE_TEXT: &str = "ライフ: ";
 const LIFE_TEXT_WIDTH: f32 = 60.0;
+
 const HEART_SIZE: Vec2 = Vec2::splat(12.8);
-const HEART_SCALE: Vec3 = Vec3::splat(0.2);
-const HEART_MARGIN: f32 = 26.0;
 const HEART_WRAP: usize = 5;
+
 const TEXT_SIZE: f32 = 20.0;
 const TEXT_COLOR: Color = Color::srgb(0.9, 0.9, 0.9);
-const PADDING: f32 = 5.0;
+const TEXT_PADDING: f32 = 5.0;
 
 #[derive(Resource, Deref, DerefMut)]
 struct HeartCount(usize);
@@ -36,184 +37,193 @@ struct ScoreText;
 struct Heart(usize);
 
 impl ScoreboardUi {
-    fn new_text(
-        text: String,
+    /// スコアボードのテキストを生成します
+    ///
+    /// Returns:
+    /// * `Self`: ScoreboardUiのインスタンス
+    /// * `Text`: 文字
+    /// * `TextFont`: フォント
+    /// * `TextColor`: 文字色
+    /// * `Node`: 位置
+    fn from_text(
+        text: &str,
         font: Handle<Font>,
-        font_size: f32,
-        color: Color,
         top: Val,
         left: Val,
     ) -> (Self, Text, TextFont, TextColor, Node) {
         (
             Self,
             Text::new(text),
-            Self::textfont(font, font_size),
-            TextColor(color),
-            Self::node(top, left),
+            TextFont {
+                font,
+                font_size: TEXT_SIZE,
+                ..Default::default()
+            },
+            TextColor(TEXT_COLOR),
+            Node {
+                position_type: PositionType::Absolute,
+                top,
+                left,
+                ..Default::default()
+            }
         )
     }
 
-    fn new_span(
-        font: Handle<Font>,
-        font_size: f32,
-        color: Color,
-    ) -> (Self, TextSpan, TextFont, TextColor) {
+    /// スコアボードのスコアを表示するテキストを生成します
+    ///
+    /// Returns:
+    /// * `Self`: ScoreboardUiのインスタンス
+    /// * `TextSpan`: スコア
+    /// * `TextFont`: フォント
+    /// * `TextColor`: 文字色
+    fn from_span(font: Handle<Font>) -> (Self, TextSpan, TextFont, TextColor) {
         (
             Self,
             TextSpan::default(),
-            Self::textfont(font, font_size),
-            TextColor(color),
+            TextFont {
+                font,
+                font_size: TEXT_SIZE,
+                ..Default::default()
+            },
+            TextColor(TEXT_COLOR),
         )
     }
 
-    fn new_image(
+    /// スコアボードにプレイヤーHPを表す画像を生成します
+    ///
+    /// Returns:
+    /// * `Self`: ScoreboardUiのインスタンス
+    /// * `TextSpan`: スコア
+    /// * `TextFont`: フォント
+    /// * `TextColor`: 文字色
+    fn from_image(
         image: Handle<Image>,
-        scale: Vec3,
         top: Val,
         left: Val,
-    ) -> (Self, ImageNode, Transform, Node) {
+    ) -> (Self, ImageNode, Node) {
         (
             Self,
             ImageNode::new(image),
-            Transform::from_scale(scale),
-            Self::node(top, left),
+            Node {
+                width: px(HEART_SIZE.x),
+                height: px(HEART_SIZE.y),
+                top,
+                left,
+                ..Default::default()
+            },
         )
-    }
-
-    fn textfont(
-        font: Handle<Font>,
-        font_size: f32,
-    ) -> TextFont {
-        TextFont {
-            font,
-            font_size,
-            ..Default::default()
-        }
-    }
-
-    fn node(
-        top: Val,
-        left: Val,
-    ) -> Node {
-        Node {
-            position_type: PositionType::Absolute,
-            top,
-            left,
-            ..Default::default()
-        }
     }
 }
 
+/// スコアボードのセットアップを行う関数
+/// 構造：
+/// * score text
+///   * score span
+/// * player text
+/// * player heart images
 fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
-    // debug!("setup");
+    info_once!("setup");
+
+    // スコアテキストを生成
     let font = asset_server.load(PATH_FONT);
-    // score
-    let (top, left) = (
-        Val::Px(PADDING),
-        Val::Px(PADDING),
-    );
-    commands.spawn(ScoreboardUi::new_text(
-        SCORE_TEXT.to_string(),
-        font.clone(),
-        TEXT_SIZE,
-        TEXT_COLOR,
-        top,
-        left,
-    ))
-    .with_child((
-        ScoreboardUi::new_span(
-            font.clone(),
-            TEXT_SIZE,
-            TEXT_COLOR,
-        ),
-        ScoreText,
+    let (top, left) = (px(TEXT_PADDING), px(TEXT_PADDING));
+
+    commands.spawn((
+        ScoreboardUi::from_text(SCORE_TEXT, font.clone(), top, left),
+        children![(
+            ScoreboardUi::from_span(font.clone()),
+            ScoreText,
+        )]
     ));
-    // player hp
-    let (top, left) = (
-        Val::Px(PADDING),
-        Val::Px(WINDOW_SIZE.x / 2.0 + PADDING),
-    );
-    commands.spawn(ScoreboardUi::new_text(
-        LIFE_TEXT.to_string(), 
-        font.clone(), 
-        TEXT_SIZE, 
-        TEXT_COLOR, 
-        top, 
-        left,
-    ));
-    // player hp heart
+
+    // プレイヤーのHPを表示
+    let (top, left) = (px(TEXT_PADDING), px(WINDOW_SIZE.x / 2.0 + TEXT_PADDING));
+
+    commands.spawn(ScoreboardUi::from_text(LIFE_TEXT, font.clone(), top, left));
+
+    // プレイヤーのHPを表す画像を表示
     let image = asset_server.load(PATH_IMAGE);
-    for i in 1..PLAYER_HP + 1 {
-        let (mut top, mut left) = (
-            Val::Px(PADDING - HEART_MARGIN),
-            Val::Px(
-                WINDOW_SIZE.x / 2.0 + PADDING + LIFE_TEXT_WIDTH - HEART_MARGIN +
-                HEART_SIZE.x * i as f32),
+
+    for i in 1..=PLAYER_HP {
+        let row = (i - 1) / HEART_WRAP;
+        let col = (i - 1) % HEART_WRAP;
+
+        let top = px(TEXT_PADDING + HEART_SIZE.y * row as f32);
+        let left = px(
+            WINDOW_SIZE.x / 2.0 + TEXT_PADDING + LIFE_TEXT_WIDTH +
+            HEART_SIZE.x * col as f32
         );
-        if i > HEART_WRAP {
-            top = Val::Px(PADDING - HEART_MARGIN + HEART_SIZE.y);
-            left = Val::Px(
-                WINDOW_SIZE.x / 2.0 + PADDING + LIFE_TEXT_WIDTH - HEART_MARGIN +
-                HEART_SIZE.x * (i - HEART_WRAP) as f32);
-        }
+
         commands.spawn((
-            ScoreboardUi::new_image(
-                image.clone(),
-                HEART_SCALE,
-                top,
-                left,
-            ),
+            ScoreboardUi::from_image(image.clone(), top, left),
             Heart(i),
         ));
     }
 }
 
+/// スコアの更新を検知してテキストに反映させる関数
 fn update_score(
     score: Res<Score>,
     mut query: Query<&mut TextSpan, With<ScoreText>>,
-) {
-    let Ok(mut span) = query.get_single_mut() else { return };
-    // update score
+) -> Result {
+    info_once!("update_score");
+
+    let mut span = query.single_mut()?;
+
     **span = score.sum().to_string();
+
+    Ok(())
 }
 
+/// プレイヤーのHPの更新を検知してプレイヤーのハートの数を更新する関数
 fn update_playerhp(
     mut commands: Commands,
     mut count: ResMut<HeartCount>,
     heart_query: Query<(&Heart, Entity), With<Heart>>,
     player_query: Query<&Player, With<Player>>,
-) {
-    let Ok(player) = player_query.get_single() else { return };
+) -> Result {
+    info_once!("update_playerhp");
 
-    if player.hp == **count { return }
+    let player = player_query.single()?;
 
-    for (heart, heart_entity) in &heart_query {
-        if player.hp != heart.0 - 1 { continue }
-        **count -= 1;
-        // trace!("count: {}", **count);
-        commands.entity(heart_entity).despawn();
+    // プレイヤーのHPとハートの数が違ったら（値が更新されたら）
+    if player.hp != **count {
+        for (heart, heart_entity) in &heart_query {
+            if player.hp == heart.0 - 1 {
+                trace!("count: {}", **count);
+                **count -= 1;
+                commands.entity(heart_entity).despawn();
+            }
+        }
     }
+
+    Ok(())
 }
 
-fn reset_score(mut score: ResMut<Score>) {
-    // debug!("reset_score");
-    *score = Score::reset();
-}
-
-fn reset_count(mut count: ResMut<HeartCount>) {
-    // debug!("reset_count");
-    **count = PLAYER_HP;
-}
-
-fn all_despawn(
+/// スコアボードを削除する関数
+fn despawn(
     mut commands: Commands,
     query: Query<Entity, With<ScoreboardUi>>,
 ) {
-    // debug!("all_despawn");
-    for entity in &query { commands.entity(entity).despawn() }
+    info_once!("despawn");
+
+    for entity in &query {
+        commands.entity(entity).despawn();
+    }
+}
+
+/// スコア、ハートの数をリセットする関数
+fn reset(
+    mut score: ResMut<Score>,
+    mut count: ResMut<HeartCount>,
+) {
+    info_once!("reset");
+
+    *score = Score::reset();
+    **count = PLAYER_HP;
 }
 
 pub struct ScoreboardPlugin;
@@ -227,11 +237,8 @@ impl Plugin for ScoreboardPlugin {
                 update_score,
                 update_playerhp,
             ).run_if(in_state(AppState::Ingame)))
-            .add_systems(OnExit(AppState::Ingame), all_despawn)
-            .add_systems(OnExit(AppState::Gameover), (
-                reset_score,
-                reset_count,
-            ))
+            .add_systems(OnExit(AppState::Ingame), despawn)
+            .add_systems(OnExit(AppState::Gameover), reset)
         ;
     }
 }

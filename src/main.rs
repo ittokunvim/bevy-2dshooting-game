@@ -1,7 +1,8 @@
 use bevy::{
-    prelude::*,
-    log::LogPlugin,
-    asset::AssetMetaCheck,
+  asset::AssetMetaCheck,
+  log::LogPlugin,
+  prelude::*,
+  window::WindowResolution
 };
 
 mod background;
@@ -16,8 +17,9 @@ const PATH_FONT: &str = "fonts/misaki_gothic.ttf";
 const SCORE_FIGHTER: usize = 10;
 const SCORE_TORPEDO: usize = 50;
 
-#[derive(States, Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(States, Default, Debug, Clone, PartialEq, Eq, Hash, Resource)]
 enum AppState {
+    #[default]
     Mainmenu,
     Ingame,
     Gameover,
@@ -47,13 +49,15 @@ impl Score {
 }
 
 fn main() {
+    let window_size = WINDOW_SIZE.as_uvec2();
+
     App::new()
         .add_plugins(DefaultPlugins
             .set(WindowPlugin {
                 primary_window: Some(Window {
-                    resolution: WINDOW_SIZE.into(),
-                    canvas: Some("#bevy".into()),
+                    resolution: WindowResolution::new(window_size.x, window_size.y),
                     title: GAMETITLE.to_string(),
+                    canvas: Some("#bevy".into()),
                     ..Default::default()
                 }),
                 ..Default::default()
@@ -69,7 +73,7 @@ fn main() {
                 ..Default::default()
             })
         )
-        .insert_state(AppState::Mainmenu)
+        .init_state::<AppState>()
         .insert_resource(Score::new())
         .insert_resource(Time::<Fixed>::from_seconds(1.0 / 60.0))
         .add_systems(Startup, setup)

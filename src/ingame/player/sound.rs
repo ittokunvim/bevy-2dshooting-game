@@ -18,13 +18,10 @@ fn setup(
 }
 
 fn play_shoot_sound(
-    mut events: EventReader<ShootEvent>,
+    _shot: On<ShootEvent>,
     mut commands: Commands,
     sound: Res<ShootSound>,
 ) {
-    if events.is_empty() { return }
-    events.clear();
-
     // debug!("play_shoot_sound");
     commands.spawn((
         AudioPlayer(sound.clone()),
@@ -38,7 +35,7 @@ impl Plugin for SoundPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_systems(OnEnter(AppState::Ingame), setup)
-            .add_systems(Update, play_shoot_sound.run_if(in_state(AppState::Ingame)))
+            .add_observer(play_shoot_sound)
         ;
     }
 }

@@ -22,7 +22,6 @@
 - AWSDキー: 移動
 - スペース: 弾を発射
 
-
 ## Wasmに変換する
 
 ゲームをWasmに変換する場合は、以下のコマンドを実行します。
@@ -33,6 +32,8 @@ cargo build --release --target wasm32-unknown-unknown
 # 変換
 wasm-bindgen --target web --out-dir ./examples --no-typescript \
 target/wasm32-unknown-unknown/release/ittoku_2dshooting_game.wasm
+# 実行
+npx http-server examples
 ```
 
 ## クレジット
@@ -56,3 +57,4 @@ target/wasm32-unknown-unknown/release/ittoku_2dshooting_game.wasm
 画像編集 [Pixlr](https://pixlr.com)
 
 Wasm変換 [wasm-bindgen](https://github.com/rustwasm/wasm-bindgen)
+

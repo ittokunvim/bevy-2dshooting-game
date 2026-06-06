@@ -82,10 +82,10 @@ fn despawn_animation(
 
 fn player_damage_animation(
     mut query: Query<(&Player, &AnimationConfig, &mut Sprite)>,
-) {
-    let Ok((player, config, mut sprite)) = query.get_single_mut() else { return };
+) -> Result {
+    let (player, config, mut sprite) = query.single_mut()?;
 
-    if config.name != AnimationName::PlayerDamage { return }
+    if config.name != AnimationName::PlayerDamage { return Ok(()) }
 
     if let Some(atlas) = &mut sprite.texture_atlas {
         match player.hp {
@@ -95,6 +95,8 @@ fn player_damage_animation(
             _ => {},
         }
     }
+
+    Ok(())
 }
 
 pub struct AnimationConfigPlugin;

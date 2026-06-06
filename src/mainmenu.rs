@@ -36,7 +36,7 @@ fn setup(
             ..Default::default()
         },
         TextColor(GAMETITLE_COLOR),
-        TextLayout::new_with_justify(JustifyText::Center),
+        TextLayout::new_with_justify(Justify::Center),
         Transform::from_xyz(x, y, z),
         Mainmenu,
     ));
@@ -54,7 +54,7 @@ fn setup(
             ..Default::default()
         },
         TextColor(CLICKSTART_COLOR),
-        TextLayout::new_with_justify(JustifyText::Center),
+        TextLayout::new_with_justify(Justify::Center),
         Transform::from_xyz(x, y, z),
         Mainmenu,
     ));

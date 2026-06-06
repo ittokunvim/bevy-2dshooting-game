@@ -9,20 +9,24 @@ pub const SPEED: f32 = 0.2;
 
 fn scrollup(
     mut query: Query<&mut Transform, With<MyCamera>>,
-) {
-    let Ok(mut transform) = query.get_single_mut() else { return };
+) -> Result {
+    let mut transform = query.single_mut()?;
 
     transform.translation.y += SPEED;
     // trace!("camera y: {}", transform.translation.y);
+
+    Ok(())
 }
 
 fn reset_position(
     mut query: Query<&mut Transform, With<MyCamera>>,
-) {
+) -> Result {
     // debug!("reset_position");
-    let Ok(mut transform) = query.get_single_mut() else { return };
+    let mut transform = query.single_mut()?;
 
     transform.translation = Vec3::ZERO;
+
+    Ok(())
 }
 
 pub struct CameraPlugin;

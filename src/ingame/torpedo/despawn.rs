@@ -23,24 +23,23 @@ fn setup(
 }
 
 fn spawn(
+    despawned: On<TorpedoDespawnEvent>,
     mut commands: Commands,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
-    mut events: EventReader<TorpedoDespawnEvent>,
     despawn_image: Res<DespawnImage>,
 ) {
-    for event in events.read() {
-        let vec2 = event.0;
-        let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);
-        let texture_atlas_layout = texture_atlas_layouts.add(layout);
-        let translation = Vec3::new(
-            vec2.x, 
-            vec2.y, 
-            99.0,
-        );
+    let vec2 = despawned.0;
+    let layout = TextureAtlasLayout::from_grid(IMAGE_SIZE, COLUMN, ROW, None, None);
+    let texture_atlas_layout = texture_atlas_layouts.add(layout);
+    let translation = Vec3::new(
+        vec2.x, 
+        vec2.y, 
+        99.0,
+    );
 
-        let animation_config = AnimationConfig::new(AnimationName::Despawn, 0, 9, FPS);
-        // debug!("spawn");
-        commands.spawn((
+    let animation_config = AnimationConfig::new(AnimationName::Despawn, 0, 9, FPS);
+    // debug!("spawn");
+    commands.spawn((
             Sprite::from_atlas_image(
                 despawn_image.clone(), 
                 TextureAtlas {
@@ -50,8 +49,7 @@ fn spawn(
             ),
             Transform::from_translation(translation),
             animation_config,
-        ));
-    }
+    ));
 }
 
 pub struct DespawnPlugin;
@@ -60,7 +58,7 @@ impl Plugin for DespawnPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_systems(OnEnter(AppState::Ingame), setup)
-            .add_systems(Update, spawn.run_if(in_state(AppState::Ingame)))
+            .add_observer(spawn)
         ;
     }
 }
