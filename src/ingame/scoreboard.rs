@@ -16,8 +16,6 @@ const SCORE_TEXT: &str = "スコア: ";
 const LIFE_TEXT: &str = "ライフ: ";
 const LIFE_TEXT_WIDTH: f32 = 60.0;
 const HEART_SIZE: Vec2 = Vec2::splat(12.8);
-const HEART_SCALE: Vec3 = Vec3::splat(0.2);
-const HEART_MARGIN: f32 = 26.0;
 const HEART_WRAP: usize = 5;
 const TEXT_SIZE: f32 = 20.0;
 const TEXT_COLOR: Color = Color::srgb(0.9, 0.9, 0.9);
@@ -68,15 +66,19 @@ impl ScoreboardUi {
 
     fn new_image(
         image: Handle<Image>,
-        scale: Vec3,
         top: Val,
         left: Val,
-    ) -> (Self, ImageNode, Transform, Node) {
+    ) -> (Self, ImageNode, Node) {
         (
             Self,
             ImageNode::new(image),
-            Transform::from_scale(scale),
-            Self::node(top, left),
+            Node {
+                width: px(HEART_SIZE.x),
+                height: px(HEART_SIZE.y),
+                top,
+                left,
+                ..Default::default()
+            },
         )
     }
 
@@ -148,21 +150,20 @@ fn setup(
     let image = asset_server.load(PATH_IMAGE);
     for i in 1..PLAYER_HP + 1 {
         let (mut top, mut left) = (
-            Val::Px(PADDING - HEART_MARGIN),
+            Val::Px(PADDING),
             Val::Px(
-                WINDOW_SIZE.x / 2.0 + PADDING + LIFE_TEXT_WIDTH - HEART_MARGIN +
+                WINDOW_SIZE.x / 2.0 + PADDING + LIFE_TEXT_WIDTH +
                 HEART_SIZE.x * i as f32),
         );
         if i > HEART_WRAP {
-            top = Val::Px(PADDING - HEART_MARGIN + HEART_SIZE.y);
+            top = Val::Px(PADDING + HEART_SIZE.y);
             left = Val::Px(
-                WINDOW_SIZE.x / 2.0 + PADDING + LIFE_TEXT_WIDTH - HEART_MARGIN +
+                WINDOW_SIZE.x / 2.0 + PADDING + LIFE_TEXT_WIDTH +
                 HEART_SIZE.x * (i - HEART_WRAP) as f32);
         }
         commands.spawn((
             ScoreboardUi::new_image(
                 image.clone(),
-                HEART_SCALE,
                 top,
                 left,
             ),
